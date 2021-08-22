@@ -16,6 +16,23 @@ const (
 	UNIT_EXPR
 )
 
+func (exprType ExprType) getName() string {
+	switch exprType {
+	case UNSET_EXPR:
+		return "UNSET"
+	case AND_EXPR:
+		return "AND"
+	case OR_EXPR:
+		return "OR"
+	case NOT_EXPR:
+		return "NOT"
+	case UNIT_EXPR:
+		return "UNIT"
+	default:
+		return "UNEXPECTED"
+	}
+}
+
 // Expression can be a literal or a function composed by one or two other expressions.
 type Expression struct {
 	LExpr     *Expression
@@ -32,37 +49,19 @@ type PatternResult struct {
 }
 
 func (exp *Expression) getTypeName() string {
-	switch exp.Type {
-	case AND_EXPR:
-		return "AND"
-	case OR_EXPR:
-		return "OR"
-	case NOT_EXPR:
-		return "NOT"
-	case UNIT_EXPR:
-		return "UNIT"
-	}
-	return "NONE"
+	return exp.Type.getName()
 }
 
-func (exp *Expression) Solve(patterResByKeyword map[string]PatternResult, completeMap bool, enableCache bool) (bool, error) {
+func (exp *Expression) Solve(patterResByKeyword map[string]PatternResult, completeMap bool) (bool, error) {
 	switch exp.Type {
 	case UNIT_EXPR:
-		if !exp.Evaluated {
-			if resp, ok := patterResByKeyword[exp.Literal]; ok {
-				exp.Val = resp.Val
-				if enableCache {
-					exp.Evaluated = true
-				}
+		if resp, ok := patterResByKeyword[exp.Literal]; ok {
+			exp.Val = resp.Val
+		} else {
+			if completeMap {
+				return false, fmt.Errorf(fmt.Sprintf("could not find key %s on map.", exp.Literal))
 			} else {
-				if completeMap {
-					return false, fmt.Errorf(fmt.Sprintf("could not find key %s on map.", exp.Literal))
-				} else {
-					exp.Val = false
-					if enableCache {
-						exp.Evaluated = true
-					}
-				}
+				exp.Val = false
 			}
 		}
 		return exp.Val, nil
@@ -70,54 +69,40 @@ func (exp *Expression) Solve(patterResByKeyword map[string]PatternResult, comple
 		if exp.LExpr == nil || exp.RExpr == nil {
 			return false, fmt.Errorf(fmt.Sprintf("And statment do not have rigth or left expression: %v", exp))
 		}
-		if !exp.Evaluated {
-			lval, err := exp.LExpr.Solve(patterResByKeyword, completeMap, enableCache)
-			if err != nil {
-				return false, err
-			}
-			rval, err := exp.RExpr.Solve(patterResByKeyword, completeMap, enableCache)
-			if err != nil {
-				return false, err
-			}
-			exp.Val = lval && rval
-			if enableCache {
-				exp.Evaluated = true
-			}
+		lval, err := exp.LExpr.Solve(patterResByKeyword, completeMap)
+		if err != nil {
+			return false, err
 		}
+		rval, err := exp.RExpr.Solve(patterResByKeyword, completeMap)
+		if err != nil {
+			return false, err
+		}
+		exp.Val = lval && rval
+
 		return exp.Val, nil
 	case OR_EXPR:
 		if exp.LExpr == nil || exp.RExpr == nil {
 			return false, fmt.Errorf(fmt.Sprintf("OR statment do not have rigth or left expression: %v", exp))
 		}
-		if !exp.Evaluated {
-			lval, err := exp.LExpr.Solve(patterResByKeyword, completeMap, enableCache)
-			if err != nil {
-				return false, err
-			}
-			rval, err := exp.RExpr.Solve(patterResByKeyword, completeMap, enableCache)
-			if err != nil {
-				return false, err
-			}
-			exp.Val = lval || rval
-			if enableCache {
-				exp.Evaluated = true
-			}
+		lval, err := exp.LExpr.Solve(patterResByKeyword, completeMap)
+		if err != nil {
+			return false, err
 		}
+		rval, err := exp.RExpr.Solve(patterResByKeyword, completeMap)
+		if err != nil {
+			return false, err
+		}
+		exp.Val = lval || rval
 		return exp.Val, nil
 	case NOT_EXPR:
 		if exp.RExpr == nil {
 			return false, fmt.Errorf(fmt.Sprintf("NOT statment do not have expression: %v", exp))
 		}
-		if !exp.Evaluated {
-			lval, err := exp.RExpr.Solve(patterResByKeyword, completeMap, enableCache)
-			if err != nil {
-				return false, err
-			}
-			exp.Val = !lval
-			if enableCache {
-				exp.Evaluated = true
-			}
+		lval, err := exp.RExpr.Solve(patterResByKeyword, completeMap)
+		if err != nil {
+			return false, err
 		}
+		exp.Val = !lval
 		return exp.Val, nil
 	default:
 		return false, fmt.Errorf(fmt.Sprintf("Unable to process expression type %d", exp.Type))

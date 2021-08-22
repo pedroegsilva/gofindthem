@@ -24,14 +24,39 @@ const (
 	QUOTATION // "
 	OPPAR     // (
 	CLPAR     // )
-	COMMA     // ,
 
 	// Operators
-	OPERATOR // generic operator
-	AND      // 'and' or 'AND'
-	OR       // 'or' or 'OR'
-	NOT      // 'not' or 'NOT'
+	AND // 'and' or 'AND'
+	OR  // 'or' or 'OR'
+	NOT // 'not' or 'NOT'
 )
+
+func (tok Token) getName() string {
+	switch tok {
+	case ILLEGAL:
+		return "ILLEGAL"
+	case EOF:
+		return "EOF"
+	case WS:
+		return "WS"
+	case KEYWORD:
+		return "KEYWORD"
+	case QUOTATION:
+		return "QUOTATION"
+	case OPPAR:
+		return "OPPAR"
+	case CLPAR:
+		return "CLPAR"
+	case AND:
+		return "AND"
+	case OR:
+		return "OR"
+	case NOT:
+		return "NOT"
+	default:
+		return "UNEXPECTED"
+	}
+}
 
 // Scanner represents a lexical scanner.
 type Scanner struct {
@@ -69,7 +94,7 @@ func (s *Scanner) Scan() (tok Token, lit string, err error) {
 		return EOF, "", nil
 	}
 
-	return ILLEGAL, string(ch), fmt.Errorf(fmt.Sprintf("Illegal char was found %c", ch))
+	return ILLEGAL, "", fmt.Errorf(fmt.Sprintf("Illegal char was found %c", ch))
 }
 
 // scanWhitespace consumes the current rune and all contiguous whitespace.
@@ -99,7 +124,7 @@ func (s *Scanner) scanOperators() (tok Token, lit string, err error) {
 	// Create a buffer and read the current character into it.
 	ch := s.read()
 	if !isLetter(ch) {
-		return ILLEGAL, "", fmt.Errorf(fmt.Sprintf("Fail to scan operator: expected letter but found %c", ch))
+		return ILLEGAL, "", fmt.Errorf(fmt.Sprintf("fail to scan operator: expected letter but found %c", ch))
 	}
 	var buf bytes.Buffer
 
@@ -128,7 +153,7 @@ func (s *Scanner) scanOperators() (tok Token, lit string, err error) {
 	case "NOT":
 		tok = NOT
 	default:
-		tok = OPERATOR
+		return ILLEGAL, "", fmt.Errorf(fmt.Sprintf("fail to scan operator: unexpected operator '%s' found", lit))
 	}
 
 	// Otherwise return as a regular identifier.
@@ -138,7 +163,7 @@ func (s *Scanner) scanOperators() (tok Token, lit string, err error) {
 func (s *Scanner) scanKeyword() (tok Token, lit string, err error) {
 	ch := s.read()
 	if ch != '"' {
-		return ILLEGAL, "", fmt.Errorf(fmt.Sprintf("Fail to scan keyword: expected \" but found %c", ch))
+		return ILLEGAL, "", fmt.Errorf(fmt.Sprintf("fail to scan keyword: expected \" but found %c", ch))
 	}
 	var buf bytes.Buffer
 
@@ -147,7 +172,7 @@ func (s *Scanner) scanKeyword() (tok Token, lit string, err error) {
 		ch := s.read()
 		switch ch {
 		case eof:
-			return ILLEGAL, "", fmt.Errorf("Fail to scan keyword: expected \" but found EOF")
+			return ILLEGAL, "", fmt.Errorf("fail to scan keyword: expected \" but found EOF")
 		case '\\':
 			scapedCh := s.read()
 			switch scapedCh {
@@ -162,7 +187,7 @@ func (s *Scanner) scanKeyword() (tok Token, lit string, err error) {
 			case '"':
 				_, _ = buf.WriteRune(scapedCh)
 			default:
-				return ILLEGAL, "", fmt.Errorf(fmt.Sprintf("Fail to scan keyword: invalid escaped char %c", scapedCh))
+				return ILLEGAL, "", fmt.Errorf(fmt.Sprintf("fail to scan keyword: invalid escaped char %c", scapedCh))
 			}
 		case '"':
 			endloop = true
