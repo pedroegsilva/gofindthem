@@ -1,33 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
-
-go_library(
-    name = "dsl",
-    srcs = [
-        "ahocorasickMachine.go",
-        "dsl.go",
-        "expression.go",
-        "parser.go",
-        "scanner.go",
-    ],
-    importpath = "github.com/pedroegsilva/someProject/dsl",
-    visibility = ["//visibility:public"],
-    deps = [
-        "@com_github_anknown_ahocorasick//:ahocorasick",
-        "@com_github_cloudflare_ahocorasick//:ahocorasick",
-        "@com_github_petar_dambovaliev_aho_corasick//:aho-corasick",
-    ],
-)
-
-go_test(
-    name = "dsl_test",
-    srcs = ["dsl_test.go"],
-    embed = [":dsl"],
-    deps = [
-        "@com_github_anknown_ahocorasick//:ahocorasick",
-        "@com_github_cloudflare_ahocorasick//:ahocorasick",
-        "@com_github_petar_dambovaliev_aho_corasick//:aho-corasick",
-    ],
-)
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "finder",

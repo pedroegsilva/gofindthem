@@ -3,6 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_test")
 go_test(
     name = "benchmarks_test",
     srcs = ["finder_test.go"],
+    data = [":files/words.txt"],
     deps = [
         "//dsl",
         "//finder",
@@ -10,5 +11,4 @@ go_test(
         "@com_github_cloudflare_ahocorasick//:ahocorasick",
         "@com_github_petar_dambovaliev_aho_corasick//:aho-corasick",
     ],
-    data = [":files/words.txt"]
 )

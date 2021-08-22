@@ -78,7 +78,7 @@ var (
 	exps10                                 []string
 	exps100                                []string
 	exps1000                               []string
-	randText5000, randText10000            string
+	randText10000                          string
 )
 
 const (
@@ -89,10 +89,6 @@ const (
 
 func BenchmarkParser100(b *testing.B) {
 	BMParser(exp100, b)
-}
-
-func BenchmarkParserInter100(b *testing.B) {
-	BMParserInter(exp100, b)
 }
 
 func BenchmarkSolverNoCacheCompleteMap100(b *testing.B) {
@@ -143,10 +139,6 @@ func BenchmarkDslWithPetarDambovaliev100(b *testing.B) {
 
 func BenchmarkParser10000(b *testing.B) {
 	BMParser(exp10000, b)
-}
-
-func BenchmarkParserInter10000(b *testing.B) {
-	BMParserInter(exp10000, b)
 }
 
 func BenchmarkSolverNoCacheCompleteMap10000(b *testing.B) {
@@ -286,17 +278,11 @@ func BMParser(exp string, b *testing.B) {
 	}
 }
 
-func BMParserInter(exp string, b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		dsl.NewParser(strings.NewReader(exp)).ParseInter()
-	}
-}
-
 func BMSolver(exp string, solverMap map[string]dsl.PatternResult, completeMap bool, b *testing.B) {
 	p := dsl.NewParser(strings.NewReader(exp))
 	e, _ := p.Parse()
 	for i := 0; i < b.N; i++ {
-		e.Solve(solverMap, completeMap, false)
+		e.Solve(solverMap, completeMap)
 	}
 }
 
