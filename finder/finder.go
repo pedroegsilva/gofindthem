@@ -9,6 +9,7 @@ import (
 type ExprWrapper struct {
 	Expr       *dsl.Expression
 	ExprString string
+	SolverOrd  dsl.SolverOrder
 }
 
 type Finder struct {
@@ -33,7 +34,7 @@ func (finder *Finder) AddExpression(expression string) error {
 		return err
 	}
 
-	finder.Expressions = append(finder.Expressions, ExprWrapper{exp, expression})
+	finder.Expressions = append(finder.Expressions, ExprWrapper{exp, expression, exp.CreateSolverOrder()})
 	for key := range p.GetKeywords() {
 		finder.Keywords[key] = true
 	}
@@ -91,7 +92,7 @@ func (finder *Finder) createSolverMap(matches chan *Match, completeMap bool) (so
 func (finder *Finder) solveExpressions(solverMap map[string]dsl.PatternResult, completeMap bool) (evalResp map[string]bool, err error) {
 	evalResp = make(map[string]bool)
 	for _, exp := range finder.Expressions {
-		res, err := exp.Expr.Solve(solverMap, completeMap)
+		res, err := exp.SolverOrd.Solve(solverMap, completeMap)
 		if err != nil {
 			return nil, err
 		}
