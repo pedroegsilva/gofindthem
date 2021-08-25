@@ -5,13 +5,14 @@ import (
 	"io"
 )
 
-// Parser represents a parser.
+// Parser parser struct that holds needed information to
+// parse the expression.
 type Parser struct {
 	s   *Scanner
 	buf struct {
-		tok Token  // last read token
-		lit string // last read literal
-		n   int    // buffer size (max=1)
+		tok       Token  // last read token
+		lit       string // last read literal
+		unscanned bool   // if it was unscanned
 	}
 	keywords map[string]bool
 	parCount int
@@ -22,18 +23,22 @@ func NewParser(r io.Reader) *Parser {
 	return &Parser{s: NewScanner(r), keywords: make(map[string]bool), parCount: 0}
 }
 
-func (p *Parser) Parse() (expr *Expression, err error) {
-	return p.parse()
-}
-
+// GetKeywords returns the set of UNIT terms (Keywords) that where
+// found on the parser
 func (p *Parser) GetKeywords() map[string]bool {
 	return p.keywords
 }
 
+// Parse parses the expression and returns the root node
+// of the parsed expression.
+func (p *Parser) Parse() (expr *Expression, err error) {
+	return p.parse()
+}
+
+// parse parses the expression and returns the root node
+// of the parsed expression.
 func (p *Parser) parse() (*Expression, error) {
-	exp := &Expression{
-		Evaluated: false,
-	}
+	exp := &Expression{}
 	for {
 		tok, lit, err := p.scanIgnoreWhitespace()
 		if err != nil {
@@ -59,9 +64,8 @@ func (p *Parser) parse() (*Expression, error) {
 
 		case KEYWORD:
 			keyExp := &Expression{
-				Type:      UNIT_EXPR,
-				Literal:   lit,
-				Evaluated: false,
+				Type:    UNIT_EXPR,
+				Literal: lit,
 			}
 			if exp.LExpr == nil {
 				exp.LExpr = keyExp
@@ -88,16 +92,14 @@ func (p *Parser) parse() (*Expression, error) {
 			}
 
 			notExp := &Expression{
-				Type:      NOT_EXPR,
-				Evaluated: false,
+				Type: NOT_EXPR,
 			}
 
 			switch nextTok {
 			case KEYWORD:
 				notExp.RExpr = &Expression{
-					Type:      UNIT_EXPR,
-					Literal:   nextLit,
-					Evaluated: false,
+					Type:    UNIT_EXPR,
+					Literal: nextLit,
 				}
 			case OPPAR:
 				p.unscan()
@@ -137,7 +139,7 @@ func (p *Parser) parse() (*Expression, error) {
 			switch finalExp.Type {
 			case AND_EXPR, OR_EXPR:
 				if finalExp.RExpr == nil {
-					return nil, fmt.Errorf("invalid expression: incomplete expression %s", finalExp.Type.getName())
+					return nil, fmt.Errorf("invalid expression: incomplete expression %s", finalExp.Type.GetName())
 				}
 			}
 
@@ -149,9 +151,11 @@ func (p *Parser) parse() (*Expression, error) {
 	}
 }
 
+// handleDualOp adds the needed information to the current expression and returns the next
+// expression, that can be the same or another expression.
 func (p *Parser) handleDualOp(exp *Expression, expType ExprType) (*Expression, error) {
 	if exp.LExpr == nil {
-		return exp, fmt.Errorf("invalid expression: no left expression was found for %s", expType.getName())
+		return exp, fmt.Errorf("invalid expression: no left expression was found for %s", expType.GetName())
 	}
 	if exp.RExpr == nil {
 		exp.Type = expType
@@ -164,9 +168,8 @@ func (p *Parser) handleDualOp(exp *Expression, expType ExprType) (*Expression, e
 	}
 
 	exp = &Expression{
-		Type:      expType,
-		LExpr:     exp,
-		Evaluated: false,
+		Type:  expType,
+		LExpr: exp,
 	}
 
 	p.unscan()
@@ -181,10 +184,12 @@ func (p *Parser) handleDualOp(exp *Expression, expType ExprType) (*Expression, e
 	return exp, nil
 }
 
+// scan scans the next token and stores it on a buffer to
+// make unscanning on token possible
 func (p *Parser) scan() (tok Token, lit string, err error) {
 	// If we have a token on the buffer, then return it.
-	if p.buf.n != 0 {
-		p.buf.n = 0
+	if p.buf.unscanned {
+		p.buf.unscanned = false
 		return p.buf.tok, p.buf.lit, nil
 	}
 
@@ -200,8 +205,9 @@ func (p *Parser) scan() (tok Token, lit string, err error) {
 	return
 }
 
-// unscan pushes the previously read token back onto the buffer.
-func (p *Parser) unscan() { p.buf.n = 1 }
+// unscan sets the unscanned flag to assign the scan to
+// use the buffered information.
+func (p *Parser) unscan() { p.buf.unscanned = true }
 
 // scanIgnoreWhitespace scans the next non-whitespace token.
 func (p *Parser) scanIgnoreWhitespace() (tok Token, lit string, err error) {

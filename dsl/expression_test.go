@@ -468,7 +468,7 @@ func TestSolverInter(t *testing.T) {
 
 	for _, tc := range tests {
 		exp, err := NewParser(strings.NewReader(tc.expStr)).Parse()
-		arr := exp.CreateIteractive()
+		arr := exp.CreateSolverOrder()
 		assert.Nil(err, tc.message+" iter")
 		respInt, err := arr.Solve(tc.solverMap, false)
 		assert.Nil(err, tc.message+" iter")

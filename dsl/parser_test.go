@@ -19,9 +19,8 @@ func TestParser(t *testing.T) {
 		{
 			`"1"`,
 			Expression{
-				Type:      UNIT_EXPR,
-				Literal:   "1",
-				Evaluated: false,
+				Type:    UNIT_EXPR,
+				Literal: "1",
 			},
 			nil,
 			"single word",
@@ -29,9 +28,8 @@ func TestParser(t *testing.T) {
 		{
 			`("1")`,
 			Expression{
-				Type:      UNIT_EXPR,
-				Literal:   "1",
-				Evaluated: false,
+				Type:    UNIT_EXPR,
+				Literal: "1",
 			},
 			nil,
 			"single word parentheses",
@@ -41,16 +39,13 @@ func TestParser(t *testing.T) {
 			Expression{
 				Type: AND_EXPR,
 				LExpr: &Expression{
-					Type:      UNIT_EXPR,
-					Literal:   "1",
-					Evaluated: false,
+					Type:    UNIT_EXPR,
+					Literal: "1",
 				},
 				RExpr: &Expression{
-					Type:      UNIT_EXPR,
-					Literal:   "2",
-					Evaluated: false,
+					Type:    UNIT_EXPR,
+					Literal: "2",
 				},
-				Evaluated: false,
 			},
 			nil,
 			"simple and",
@@ -60,16 +55,13 @@ func TestParser(t *testing.T) {
 			Expression{
 				Type: AND_EXPR,
 				LExpr: &Expression{
-					Type:      UNIT_EXPR,
-					Literal:   "1",
-					Evaluated: false,
+					Type:    UNIT_EXPR,
+					Literal: "1",
 				},
 				RExpr: &Expression{
-					Type:      UNIT_EXPR,
-					Literal:   "2",
-					Evaluated: false,
+					Type:    UNIT_EXPR,
+					Literal: "2",
 				},
-				Evaluated: false,
 			},
 			nil,
 			"simple and parentheses",
@@ -79,16 +71,13 @@ func TestParser(t *testing.T) {
 			Expression{
 				Type: OR_EXPR,
 				LExpr: &Expression{
-					Type:      UNIT_EXPR,
-					Literal:   "1",
-					Evaluated: false,
+					Type:    UNIT_EXPR,
+					Literal: "1",
 				},
 				RExpr: &Expression{
-					Type:      UNIT_EXPR,
-					Literal:   "2",
-					Evaluated: false,
+					Type:    UNIT_EXPR,
+					Literal: "2",
 				},
-				Evaluated: false,
 			},
 			nil,
 			"simple or",
@@ -98,11 +87,9 @@ func TestParser(t *testing.T) {
 			Expression{
 				Type: NOT_EXPR,
 				RExpr: &Expression{
-					Type:      UNIT_EXPR,
-					Literal:   "1",
-					Evaluated: false,
+					Type:    UNIT_EXPR,
+					Literal: "1",
 				},
-				Evaluated: false,
 			},
 			nil,
 			"simple not",
@@ -114,25 +101,20 @@ func TestParser(t *testing.T) {
 				LExpr: &Expression{
 					Type: AND_EXPR,
 					LExpr: &Expression{
-						Type:      UNIT_EXPR,
-						Literal:   "1",
-						Evaluated: false,
+						Type:    UNIT_EXPR,
+						Literal: "1",
 					},
 					RExpr: &Expression{
-						Type:      UNIT_EXPR,
-						Literal:   "2",
-						Evaluated: false,
+						Type:    UNIT_EXPR,
+						Literal: "2",
 					},
-					Evaluated: false,
 				},
 				RExpr: &Expression{
 					Type: NOT_EXPR,
 					RExpr: &Expression{
-						Type:      UNIT_EXPR,
-						Literal:   "3",
-						Evaluated: false,
+						Type:    UNIT_EXPR,
+						Literal: "3",
 					},
-					Evaluated: false,
 				},
 			},
 			nil,
@@ -143,27 +125,22 @@ func TestParser(t *testing.T) {
 			Expression{
 				Type: AND_EXPR,
 				LExpr: &Expression{
-					Type:      UNIT_EXPR,
-					Literal:   "1",
-					Evaluated: false,
+					Type:    UNIT_EXPR,
+					Literal: "1",
 				},
 				RExpr: &Expression{
 					Type: OR_EXPR,
 					LExpr: &Expression{
-						Type:      UNIT_EXPR,
-						Literal:   "2",
-						Evaluated: false,
+						Type:    UNIT_EXPR,
+						Literal: "2",
 					},
 					RExpr: &Expression{
 						Type: NOT_EXPR,
 						RExpr: &Expression{
-							Type:      UNIT_EXPR,
-							Literal:   "3",
-							Evaluated: false,
+							Type:    UNIT_EXPR,
+							Literal: "3",
 						},
-						Evaluated: false,
 					},
-					Evaluated: false,
 				},
 			},
 			nil,

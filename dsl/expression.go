@@ -5,10 +5,10 @@ import (
 	"strings"
 )
 
+// ExprType are Special tokens used to define the expression type
 type ExprType int
 
 const (
-	// Special tokens
 	UNSET_EXPR ExprType = iota
 	AND_EXPR
 	OR_EXPR
@@ -16,7 +16,8 @@ const (
 	UNIT_EXPR
 )
 
-func (exprType ExprType) getName() string {
+// GetName returns a readable name for the ExprType value
+func (exprType ExprType) GetName() string {
 	switch exprType {
 	case UNSET_EXPR:
 		return "UNSET"
@@ -33,26 +34,37 @@ func (exprType ExprType) getName() string {
 	}
 }
 
-// Expression can be a literal or a function composed by one or two other expressions.
+// Expression can be a literal (UNIT) or a function composed by
+// one or two other expressions (NOT, AND, OR).
 type Expression struct {
-	LExpr     *Expression
-	RExpr     *Expression
-	Type      ExprType
-	Literal   string
-	Val       bool
-	Evaluated bool
+	LExpr   *Expression
+	RExpr   *Expression
+	Type    ExprType
+	Literal string
+	Val     bool
 }
 
+// PatternResult stores if the patter was matched on
+// the text and the positions it was found
 type PatternResult struct {
 	Val            bool
 	SortedMatchPos []int
 }
 
-func (exp *Expression) getTypeName() string {
-	return exp.Type.getName()
+// getTypeName returns the type of the expression with a readable name
+func (exp *Expression) GetTypeName() string {
+	return exp.Type.GetName()
 }
 
-func (exp *Expression) Solve(patterResByKeyword map[string]PatternResult, completeMap bool) (bool, error) {
+// Solve solves the expresion recursively. It has the option to use a complete map of
+// PatternResult or a incomplete map. If the complete map option is used the map must have
+// all the terms needed to solve de expression or it will return an error.
+// If the incomplete map is used, missing keys will be considered as a no match on the
+// document.
+func (exp *Expression) Solve(
+	patterResByKeyword map[string]PatternResult,
+	completeMap bool,
+) (bool, error) {
 	switch exp.Type {
 	case UNIT_EXPR:
 		if resp, ok := patterResByKeyword[exp.Literal]; ok {
@@ -109,30 +121,42 @@ func (exp *Expression) Solve(patterResByKeyword map[string]PatternResult, comple
 	}
 }
 
-func (exp *Expression) PrettyPrint() string {
-	return exp.prettyPrint(0)
+// PrettyPrint returns the expression formated on a tabbed structure
+// Eg: for the expression ("a" and "b") or "c"
+// OR
+//     AND
+//         a
+//         b
+func (exp *Expression) PrettyFormat() string {
+	return exp.prettyFormat(0)
 }
 
-func (exp *Expression) prettyPrint(lvl int) (pprint string) {
+func (exp *Expression) prettyFormat(lvl int) (pprint string) {
 	tabs := "    "
 	onLVL := strings.Repeat(tabs, lvl)
 	if exp.Type == UNIT_EXPR {
 		return fmt.Sprintf("%s%s\n", onLVL, exp.Literal)
 	}
-	pprint = fmt.Sprintf("%s%s\n", onLVL, exp.getTypeName())
+	pprint = fmt.Sprintf("%s%s\n", onLVL, exp.GetTypeName())
 	if exp.LExpr != nil {
-		pprint += exp.LExpr.prettyPrint(lvl + 1)
+		pprint += exp.LExpr.prettyFormat(lvl + 1)
 	}
 
 	if exp.RExpr != nil {
-		pprint += exp.RExpr.prettyPrint(lvl + 1)
+		pprint += exp.RExpr.prettyFormat(lvl + 1)
 	}
 
 	return
 }
 
+// SolverOrder store the expressions Preorder
 type SolverOrder []*Expression
 
+// Solve solves the expresion iteratively. It has the option to use a complete map of
+// PatternResult or a incomplete map. If the complete map option is used the map must have
+// all the terms needed to solve de expression or it will return an error.
+// If the incomplete map is used, missing keys will be considered as a no match on the
+// document.
 func (so SolverOrder) Solve(patterResByKeyword map[string]PatternResult, completeMap bool) (bool, error) {
 	for i := len(so) - 1; i >= 0; i-- {
 		exp := so[i]
@@ -176,21 +200,24 @@ func (so SolverOrder) Solve(patterResByKeyword map[string]PatternResult, complet
 	return so[0].Val, nil
 }
 
+// CreateSolverOrder traverses the expression tree in Preorder and
+// stores the expressions on SolverOrder
 func (exp *Expression) CreateSolverOrder() SolverOrder {
 	test := new(SolverOrder)
-	iterac(exp, test)
+	createSolverOrder(exp, test)
 	return *test
 }
 
-func iterac(exp *Expression, arr *SolverOrder) {
+// createSolverOrder recursion that traverses the expression
+// tree in Preorder
+func createSolverOrder(exp *Expression, arr *SolverOrder) {
 	(*arr) = append((*arr), exp)
 
 	if exp.LExpr != nil {
-		iterac(exp.LExpr, arr)
+		createSolverOrder(exp.LExpr, arr)
 	}
 
 	if exp.RExpr != nil {
-		iterac(exp.RExpr, arr)
+		createSolverOrder(exp.RExpr, arr)
 	}
-
 }

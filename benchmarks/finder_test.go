@@ -124,7 +124,7 @@ func BenchmarkAhocorasickCloudFlareSearch100(b *testing.B) {
 }
 
 func BenchmarkDslWithCloudFlare100(b *testing.B) {
-	BMDslSearch([]string{exp100}, &finder.CloudflareMachine{}, b)
+	BMDslSearch([]string{exp100}, &finder.CloudflareEngine{}, b)
 }
 
 func BenchmarkAhocorasickAnknownSearch100(b *testing.B) {
@@ -132,7 +132,7 @@ func BenchmarkAhocorasickAnknownSearch100(b *testing.B) {
 }
 
 func BenchmarkDslWithAnknown100(b *testing.B) {
-	BMDslSearch([]string{exp100}, &finder.AnknownMachine{}, b)
+	BMDslSearch([]string{exp100}, &finder.AnknownEngine{}, b)
 }
 
 func BenchmarkAhocorasickPetarDambovalievSearch100(b *testing.B) {
@@ -140,7 +140,7 @@ func BenchmarkAhocorasickPetarDambovalievSearch100(b *testing.B) {
 }
 
 func BenchmarkDslWithPetarDambovaliev100(b *testing.B) {
-	BMDslSearch([]string{exp100}, &finder.PetarDambovalievMachine{}, b)
+	BMDslSearch([]string{exp100}, &finder.PetarDambovalievEngine{}, b)
 }
 
 // 10000 terms
@@ -182,7 +182,7 @@ func BenchmarkAhocorasickCloudFlareSearch10000(b *testing.B) {
 }
 
 func BenchmarkDslWithCloudFlare10000(b *testing.B) {
-	BMDslSearch([]string{exp10000}, &finder.CloudflareMachine{}, b)
+	BMDslSearch([]string{exp10000}, &finder.CloudflareEngine{}, b)
 }
 
 func BenchmarkAhocorasickAnknownSearch10000(b *testing.B) {
@@ -190,7 +190,7 @@ func BenchmarkAhocorasickAnknownSearch10000(b *testing.B) {
 }
 
 func BenchmarkDslWithAnknown10000(b *testing.B) {
-	BMDslSearch([]string{exp10000}, &finder.AnknownMachine{}, b)
+	BMDslSearch([]string{exp10000}, &finder.AnknownEngine{}, b)
 }
 
 func BenchmarkAhocorasickPetarDambovalievSearch10000(b *testing.B) {
@@ -198,7 +198,7 @@ func BenchmarkAhocorasickPetarDambovalievSearch10000(b *testing.B) {
 }
 
 func BenchmarkDslWithPetarDambovaliev10000(b *testing.B) {
-	BMDslSearch([]string{exp10000}, &finder.PetarDambovalievMachine{}, b)
+	BMDslSearch([]string{exp10000}, &finder.PetarDambovalievEngine{}, b)
 }
 
 // dsl specific
@@ -211,7 +211,7 @@ func BenchmarkOnlyCloudFlare10Exps(b *testing.B) {
 }
 
 func BenchmarkDslWithCloudFlare10Exps(b *testing.B) {
-	BMDslSearch(exps10, &finder.CloudflareMachine{}, b)
+	BMDslSearch(exps10, &finder.CloudflareEngine{}, b)
 }
 
 func BenchmarkOnlyAnknown10Exps(b *testing.B) {
@@ -219,7 +219,7 @@ func BenchmarkOnlyAnknown10Exps(b *testing.B) {
 }
 
 func BenchmarkDslWithAnknown10Exps(b *testing.B) {
-	BMDslSearch(exps10, &finder.AnknownMachine{}, b)
+	BMDslSearch(exps10, &finder.AnknownEngine{}, b)
 }
 
 func BenchmarkOnlyPetarDambovaliev10Exps(b *testing.B) {
@@ -227,7 +227,7 @@ func BenchmarkOnlyPetarDambovaliev10Exps(b *testing.B) {
 }
 
 func BenchmarkDslWithPetarDambovaliev10Exps(b *testing.B) {
-	BMDslSearch(exps10, &finder.PetarDambovalievMachine{}, b)
+	BMDslSearch(exps10, &finder.PetarDambovalievEngine{}, b)
 }
 
 func BenchmarkDslWithEmptyMachine100Exps(b *testing.B) {
@@ -239,7 +239,7 @@ func BenchmarkOnlyCloudFlare100Exps(b *testing.B) {
 }
 
 func BenchmarkDslWithCloudFlare100Exps(b *testing.B) {
-	BMDslSearch(exps100, &finder.CloudflareMachine{}, b)
+	BMDslSearch(exps100, &finder.CloudflareEngine{}, b)
 }
 
 func BenchmarkOnlyAnknown100Exps(b *testing.B) {
@@ -247,7 +247,7 @@ func BenchmarkOnlyAnknown100Exps(b *testing.B) {
 }
 
 func BenchmarkDslWithAnknown100Exps(b *testing.B) {
-	BMDslSearch(exps100, &finder.AnknownMachine{}, b)
+	BMDslSearch(exps100, &finder.AnknownEngine{}, b)
 }
 
 func BenchmarkOnlyPetarDambovaliev100Exps(b *testing.B) {
@@ -255,7 +255,7 @@ func BenchmarkOnlyPetarDambovaliev100Exps(b *testing.B) {
 }
 
 func BenchmarkDslWithPetarDambovaliev100Exps(b *testing.B) {
-	BMDslSearch(exps100, &finder.PetarDambovalievMachine{}, b)
+	BMDslSearch(exps100, &finder.PetarDambovalievEngine{}, b)
 }
 
 func BenchmarkDslWithEmptyMachine1000Exps(b *testing.B) {
@@ -267,7 +267,7 @@ func BenchmarkOnlyCloudFlare1000Exps(b *testing.B) {
 }
 
 func BenchmarkDslWithCloudFlare1000Exps(b *testing.B) {
-	BMDslSearch(exps1000, &finder.CloudflareMachine{}, b)
+	BMDslSearch(exps1000, &finder.CloudflareEngine{}, b)
 }
 
 func BenchmarkOnlyAnknown1000Exps(b *testing.B) {
@@ -275,7 +275,7 @@ func BenchmarkOnlyAnknown1000Exps(b *testing.B) {
 }
 
 func BenchmarkDslWithAnknown1000Exps(b *testing.B) {
-	BMDslSearch(exps1000, &finder.AnknownMachine{}, b)
+	BMDslSearch(exps1000, &finder.AnknownEngine{}, b)
 }
 
 func BenchmarkOnlyPetarDambovaliev1000Exps(b *testing.B) {
@@ -283,7 +283,7 @@ func BenchmarkOnlyPetarDambovaliev1000Exps(b *testing.B) {
 }
 
 func BenchmarkDslWithPetarDambovaliev1000Exps(b *testing.B) {
-	BMDslSearch(exps1000, &finder.PetarDambovalievMachine{}, b)
+	BMDslSearch(exps1000, &finder.PetarDambovalievEngine{}, b)
 }
 
 // test funcs
@@ -365,7 +365,7 @@ func BMCloudFlareSearch(exps []string, b *testing.B) {
 	}
 
 	dict := [][]byte{}
-	for key := range findthem.Keywords {
+	for key := range findthem.GetKeywords() {
 		dict = append(dict, []byte(key))
 	}
 
@@ -384,7 +384,7 @@ func BMAnknownSearch(exps []string, b *testing.B) {
 	}
 
 	dict := [][]rune{}
-	for key := range findthem.Keywords {
+	for key := range findthem.GetKeywords() {
 		dict = append(dict, []rune(key))
 	}
 
@@ -405,7 +405,7 @@ func BMPetarDambovalievSearch(exps []string, b *testing.B) {
 
 	dict := []string{}
 
-	for key := range findthem.Keywords {
+	for key := range findthem.GetKeywords() {
 		dict = append(dict, key)
 	}
 
@@ -429,7 +429,7 @@ func BMDslSearch(exps []string, subEng finder.SubstringEngine, b *testing.B) {
 
 	findthem.ForceBuild()
 	for i := 0; i < b.N; i++ {
-		findthem.ProcessText(randText100000, false)
+		findthem.ProcessText(randText100000)
 	}
 }
 

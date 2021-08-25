@@ -25,7 +25,7 @@ By contrast, PostScript is a Turing complete language, and in principle can be u
 from "https://en.wikipedia.org/wiki/Domain-specific_language"`,
 	}
 
-	findthem := finder.NewFinder(&finder.CloudflareMachine{})
+	findthem := finder.NewFinder(&finder.CloudflareEngine{})
 
 	if err := findthem.AddExpression(`"computer" and "language"`); err != nil {
 		log.Fatal(err)
@@ -48,7 +48,7 @@ from "https://en.wikipedia.org/wiki/Domain-specific_language"`,
 	}
 
 	for _, text := range texts {
-		resp, err := findthem.ProcessText(text, false)
+		resp, err := findthem.ProcessText(text)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -62,6 +62,6 @@ from "https://en.wikipedia.org/wiki/Domain-specific_language"`,
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(exp.PrettyPrint())
-	exp.CreateIteractive()
+	fmt.Println(exp.PrettyFormat())
+	exp.CreateSolverOrder()
 }
