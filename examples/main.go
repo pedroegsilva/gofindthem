@@ -3,6 +3,9 @@ package main
 import (
 	"fmt"
 	"log"
+	"strings"
+
+	"github.com/pedroegsilva/gofindthem/dsl"
 
 	"github.com/pedroegsilva/gofindthem/finder"
 )
@@ -54,5 +57,11 @@ from "https://en.wikipedia.org/wiki/Domain-specific_language"`,
 		}
 		fmt.Println("------------------------------------")
 	}
-
+	exp, err := dsl.NewParser(strings.NewReader(`(("1" and( "1" and "1")) and( "1" and "1")) and (("1" and ("1" and "1")) and ("1" and "1"))`)).Parse()
+	//exp, err := dsl.NewParser(strings.NewReader(`"1" and "2" and "3"`)).Parse()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(exp.PrettyPrint())
+	exp.CreateIteractive()
 }

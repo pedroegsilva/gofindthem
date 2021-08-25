@@ -65,7 +65,7 @@ func init() {
 		knownTerms[count] = word
 		count++
 	}
-	randText10000 = createText(10000, knownTerms)
+	randText100000 = createText(100000, knownTerms)
 }
 
 var alphabet = []rune("0123456789abcdefghijklmnopqrstuvwxyz")
@@ -78,7 +78,7 @@ var (
 	exps10                                 []string
 	exps100                                []string
 	exps1000                               []string
-	randText10000                          string
+	randText100000                         string
 )
 
 const (
@@ -91,12 +91,20 @@ func BenchmarkParser100(b *testing.B) {
 	BMParser(exp100, b)
 }
 
-func BenchmarkSolverNoCacheCompleteMap100(b *testing.B) {
+func BenchmarkSolverCompleteMap100(b *testing.B) {
 	BMSolver(exp100, solverMapComp100, true, b)
 }
 
-func BenchmarkSolverNoCachePartialMap100(b *testing.B) {
+func BenchmarkSolverPartialMap100(b *testing.B) {
 	BMSolver(exp100, solverMapPart100, false, b)
+}
+
+func BenchmarkSolverIterCompleteMap100(b *testing.B) {
+	BMSolverIter(exp100, solverMapComp100, true, b)
+}
+
+func BenchmarkSolverIterPartialMap100(b *testing.B) {
+	BMSolverIter(exp100, solverMapPart100, false, b)
 }
 
 func BenchmarkAhocorasickCloudFlareBuild100(b *testing.B) {
@@ -141,12 +149,20 @@ func BenchmarkParser10000(b *testing.B) {
 	BMParser(exp10000, b)
 }
 
-func BenchmarkSolverNoCacheCompleteMap10000(b *testing.B) {
+func BenchmarkSolverCompleteMap10000(b *testing.B) {
 	BMSolver(exp10000, solverMapComp10000, true, b)
 }
 
-func BenchmarkSolverNoCachePartialMap10000(b *testing.B) {
+func BenchmarkSolverPartialMap10000(b *testing.B) {
 	BMSolver(exp10000, solverMapPart10000, false, b)
+}
+
+func BenchmarkSolverIterCompleteMap10000(b *testing.B) {
+	BMSolverIter(exp10000, solverMapComp10000, true, b)
+}
+
+func BenchmarkSolverIterPartialMap10000(b *testing.B) {
+	BMSolverIter(exp10000, solverMapPart10000, false, b)
 }
 
 func BenchmarkAhocorasickCloudFlareBuild10000(b *testing.B) {
@@ -286,6 +302,15 @@ func BMSolver(exp string, solverMap map[string]dsl.PatternResult, completeMap bo
 	}
 }
 
+func BMSolverIter(exp string, solverMap map[string]dsl.PatternResult, completeMap bool, b *testing.B) {
+	p := dsl.NewParser(strings.NewReader(exp))
+	e, _ := p.Parse()
+	so := e.CreateSolverOrder()
+	for i := 0; i < b.N; i++ {
+		so.Solve(solverMap, completeMap)
+	}
+}
+
 func BMCloudFlareBuild(exp string, b *testing.B) {
 	p := dsl.NewParser(strings.NewReader(exp))
 	p.Parse()
@@ -346,7 +371,7 @@ func BMCloudFlareSearch(exps []string, b *testing.B) {
 
 	m := cfahocorasick.NewMatcher(dict)
 
-	content := []byte(randText10000)
+	content := []byte(randText100000)
 	for i := 0; i < b.N; i++ {
 		m.Match(content)
 	}
@@ -366,7 +391,7 @@ func BMAnknownSearch(exps []string, b *testing.B) {
 	m := new(akahocorasick.Machine)
 	m.Build(dict)
 
-	contentRune := bytes.Runes([]byte(randText10000))
+	contentRune := bytes.Runes([]byte(randText100000))
 	for i := 0; i < b.N; i++ {
 		m.MultiPatternSearch(contentRune, false)
 	}
@@ -392,7 +417,7 @@ func BMPetarDambovalievSearch(exps []string, b *testing.B) {
 	})
 	bld := builder.Build(dict)
 	for i := 0; i < b.N; i++ {
-		bld.FindAll(randText10000)
+		bld.FindAll(randText100000)
 	}
 }
 
@@ -404,7 +429,7 @@ func BMDslSearch(exps []string, subEng finder.SubstringEngine, b *testing.B) {
 
 	findthem.ForceBuild()
 	for i := 0; i < b.N; i++ {
-		findthem.ProcessText(randText10000, false)
+		findthem.ProcessText(randText100000, false)
 	}
 }
 

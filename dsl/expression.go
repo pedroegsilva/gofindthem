@@ -130,3 +130,67 @@ func (exp *Expression) prettyPrint(lvl int) (pprint string) {
 
 	return
 }
+
+type SolverOrder []*Expression
+
+func (so SolverOrder) Solve(patterResByKeyword map[string]PatternResult, completeMap bool) (bool, error) {
+	for i := len(so) - 1; i >= 0; i-- {
+		exp := so[i]
+		if exp == nil {
+			continue
+		}
+		switch exp.Type {
+		case UNIT_EXPR:
+			if resp, ok := patterResByKeyword[exp.Literal]; ok {
+				exp.Val = resp.Val
+			} else {
+				if completeMap {
+					return false, fmt.Errorf(fmt.Sprintf("could not find key %s on map.", exp.Literal))
+				} else {
+					exp.Val = false
+				}
+			}
+		case AND_EXPR:
+			if exp.LExpr == nil || exp.RExpr == nil {
+				return false, fmt.Errorf(fmt.Sprintf("And statment do not have rigth or left expression: %v", exp))
+			}
+			exp.Val = exp.LExpr.Val && exp.RExpr.Val
+
+		case OR_EXPR:
+			if exp.LExpr == nil || exp.RExpr == nil {
+				return false, fmt.Errorf(fmt.Sprintf("OR statment do not have rigth or left expression: %v", exp))
+			}
+			exp.Val = exp.LExpr.Val || exp.RExpr.Val
+
+		case NOT_EXPR:
+			if exp.RExpr == nil {
+				return false, fmt.Errorf(fmt.Sprintf("NOT statment do not have expression: %v", exp))
+			}
+
+			exp.Val = !exp.RExpr.Val
+
+		default:
+			return false, fmt.Errorf(fmt.Sprintf("Unable to process expression type %d", exp.Type))
+		}
+	}
+	return so[0].Val, nil
+}
+
+func (exp *Expression) CreateSolverOrder() SolverOrder {
+	test := new(SolverOrder)
+	iterac(exp, test)
+	return *test
+}
+
+func iterac(exp *Expression, arr *SolverOrder) {
+	(*arr) = append((*arr), exp)
+
+	if exp.LExpr != nil {
+		iterac(exp.LExpr, arr)
+	}
+
+	if exp.RExpr != nil {
+		iterac(exp.RExpr, arr)
+	}
+
+}
