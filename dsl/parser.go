@@ -14,18 +14,18 @@ type Parser struct {
 		lit       string // last read literal
 		unscanned bool   // if it was unscanned
 	}
-	keywords map[string]bool
+	keywords map[string]struct{}
 	parCount int
 }
 
 // NewParser returns a new instance of Parser.
 func NewParser(r io.Reader) *Parser {
-	return &Parser{s: NewScanner(r), keywords: make(map[string]bool), parCount: 0}
+	return &Parser{s: NewScanner(r), keywords: make(map[string]struct{}), parCount: 0}
 }
 
 // GetKeywords returns the set of UNIT terms (Keywords) that where
 // found on the parser
-func (p *Parser) GetKeywords() map[string]bool {
+func (p *Parser) GetKeywords() map[string]struct{} {
 	return p.keywords
 }
 
@@ -72,7 +72,7 @@ func (p *Parser) parse() (*Expression, error) {
 			} else {
 				exp.RExpr = keyExp
 			}
-			p.keywords[lit] = true
+			p.keywords[lit] = struct{}{}
 
 		case AND:
 			exp, err = p.handleDualOp(exp, AND_EXPR)
@@ -101,6 +101,8 @@ func (p *Parser) parse() (*Expression, error) {
 					Type:    UNIT_EXPR,
 					Literal: nextLit,
 				}
+				p.keywords[nextLit] = struct{}{}
+
 			case OPPAR:
 				p.unscan()
 				newExp, err := p.parse()

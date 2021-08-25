@@ -202,8 +202,8 @@ func BenchmarkDslWithPetarDambovaliev10000(b *testing.B) {
 }
 
 // dsl specific
-func BenchmarkDslWithEmptyMachine10Exps(b *testing.B) {
-	BMDslSearch(exps10, &finder.EmptyMachine{}, b)
+func BenchmarkDslWithEmptyEngine10Exps(b *testing.B) {
+	BMDslSearch(exps10, &finder.EmptyEngine{}, b)
 }
 
 func BenchmarkOnlyCloudFlare10Exps(b *testing.B) {
@@ -230,8 +230,8 @@ func BenchmarkDslWithPetarDambovaliev10Exps(b *testing.B) {
 	BMDslSearch(exps10, &finder.PetarDambovalievEngine{}, b)
 }
 
-func BenchmarkDslWithEmptyMachine100Exps(b *testing.B) {
-	BMDslSearch(exps100, &finder.EmptyMachine{}, b)
+func BenchmarkDslWithEmptyEngine100Exps(b *testing.B) {
+	BMDslSearch(exps100, &finder.EmptyEngine{}, b)
 }
 
 func BenchmarkOnlyCloudFlare100Exps(b *testing.B) {
@@ -258,8 +258,8 @@ func BenchmarkDslWithPetarDambovaliev100Exps(b *testing.B) {
 	BMDslSearch(exps100, &finder.PetarDambovalievEngine{}, b)
 }
 
-func BenchmarkDslWithEmptyMachine1000Exps(b *testing.B) {
-	BMDslSearch(exps1000, &finder.EmptyMachine{}, b)
+func BenchmarkDslWithEmptyEngine1000Exps(b *testing.B) {
+	BMDslSearch(exps1000, &finder.EmptyEngine{}, b)
 }
 
 func BenchmarkOnlyCloudFlare1000Exps(b *testing.B) {
@@ -359,7 +359,7 @@ func BMPetarDambovalievBuild(exp string, b *testing.B) {
 }
 
 func BMCloudFlareSearch(exps []string, b *testing.B) {
-	findthem := finder.NewFinder(&finder.EmptyMachine{})
+	findthem := finder.NewFinder(&finder.EmptyEngine{})
 	for _, exp := range exps {
 		findthem.AddExpression(exp)
 	}
@@ -378,7 +378,7 @@ func BMCloudFlareSearch(exps []string, b *testing.B) {
 }
 
 func BMAnknownSearch(exps []string, b *testing.B) {
-	findthem := finder.NewFinder(&finder.EmptyMachine{})
+	findthem := finder.NewFinder(&finder.EmptyEngine{})
 	for _, exp := range exps {
 		findthem.AddExpression(exp)
 	}
@@ -398,7 +398,7 @@ func BMAnknownSearch(exps []string, b *testing.B) {
 }
 
 func BMPetarDambovalievSearch(exps []string, b *testing.B) {
-	findthem := finder.NewFinder(&finder.EmptyMachine{})
+	findthem := finder.NewFinder(&finder.EmptyEngine{})
 	for _, exp := range exps {
 		findthem.AddExpression(exp)
 	}

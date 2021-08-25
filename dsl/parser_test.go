@@ -11,16 +11,20 @@ import (
 func TestParser(t *testing.T) {
 	assert := assert.New(t)
 	tests := []struct {
-		expStr      string
-		expectedExp Expression
-		expectedErr error
-		message     string
+		expStr           string
+		expectedExp      Expression
+		expectedKeywords map[string]struct{}
+		expectedErr      error
+		message          string
 	}{
 		{
 			`"1"`,
 			Expression{
 				Type:    UNIT_EXPR,
 				Literal: "1",
+			},
+			map[string]struct{}{
+				"1": struct{}{},
 			},
 			nil,
 			"single word",
@@ -30,6 +34,9 @@ func TestParser(t *testing.T) {
 			Expression{
 				Type:    UNIT_EXPR,
 				Literal: "1",
+			},
+			map[string]struct{}{
+				"1": struct{}{},
 			},
 			nil,
 			"single word parentheses",
@@ -47,6 +54,10 @@ func TestParser(t *testing.T) {
 					Literal: "2",
 				},
 			},
+			map[string]struct{}{
+				"1": struct{}{},
+				"2": struct{}{},
+			},
 			nil,
 			"simple and",
 		},
@@ -62,6 +73,10 @@ func TestParser(t *testing.T) {
 					Type:    UNIT_EXPR,
 					Literal: "2",
 				},
+			},
+			map[string]struct{}{
+				"1": struct{}{},
+				"2": struct{}{},
 			},
 			nil,
 			"simple and parentheses",
@@ -79,6 +94,10 @@ func TestParser(t *testing.T) {
 					Literal: "2",
 				},
 			},
+			map[string]struct{}{
+				"1": struct{}{},
+				"2": struct{}{},
+			},
 			nil,
 			"simple or",
 		},
@@ -90,6 +109,9 @@ func TestParser(t *testing.T) {
 					Type:    UNIT_EXPR,
 					Literal: "1",
 				},
+			},
+			map[string]struct{}{
+				"1": struct{}{},
 			},
 			nil,
 			"simple not",
@@ -117,6 +139,11 @@ func TestParser(t *testing.T) {
 					},
 				},
 			},
+			map[string]struct{}{
+				"1": struct{}{},
+				"2": struct{}{},
+				"3": struct{}{},
+			},
 			nil,
 			"multiple function no parentheses",
 		},
@@ -143,64 +170,79 @@ func TestParser(t *testing.T) {
 					},
 				},
 			},
+			map[string]struct{}{
+				"1": struct{}{},
+				"2": struct{}{},
+				"3": struct{}{},
+			},
 			nil,
 			"multiple function with parentheses",
 		},
 		{
 			``,
 			Expression{},
+			map[string]struct{}{},
 			fmt.Errorf("invalid expression: unexpected EOF found"),
 			"empty expression",
 		},
 		{
 			`(("1")`,
 			Expression{},
+			map[string]struct{}{},
 			fmt.Errorf("invalid expression: Unexpected '('"),
 			"invalid open parentheses",
 		},
 		{
 			`("1"))`,
 			Expression{},
+			map[string]struct{}{},
 			fmt.Errorf("invalid expression: unexpected EOF found. Extra closing parentheses: 1"),
 			"invalid close parentheses",
 		},
 		{
 			`and`,
 			Expression{},
+			map[string]struct{}{},
 			fmt.Errorf("invalid expression: no left expression was found for AND"),
 			"invalid expression empty dual exp",
 		},
 		{
 			` "1" and `,
 			Expression{},
+			map[string]struct{}{},
 			fmt.Errorf("invalid expression: incomplete expression AND"),
 			"invalid expression incomplete dual exp",
 		},
 		{
 			`or`,
 			Expression{},
+			map[string]struct{}{},
 			fmt.Errorf("invalid expression: no left expression was found for OR"),
 			"invalid expression empty dual exp",
 		},
 		{
 			` "1" or `,
 			Expression{},
+			map[string]struct{}{},
 			fmt.Errorf("invalid expression: incomplete expression OR"),
 			"invalid expression incomplete dual exp",
 		},
 		{
 			`not`,
 			Expression{},
+			map[string]struct{}{},
 			fmt.Errorf("invalid expression: Unexpected token 'EOF' after NOT"),
 			"invalid expression incomplete dual exp",
 		},
 	}
 
 	for _, tc := range tests {
-		exp, err := NewParser(strings.NewReader(tc.expStr)).Parse()
+		p := NewParser(strings.NewReader(tc.expStr))
+		exp, err := p.Parse()
 		assert.Equal(tc.expectedErr, err, tc.message)
 		if err == nil {
 			assert.Equal(tc.expectedExp, *exp, tc.message)
+			assert.Equal(tc.expectedKeywords, p.GetKeywords(), tc.message)
 		}
 	}
 }
