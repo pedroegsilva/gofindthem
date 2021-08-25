@@ -140,16 +140,17 @@ func (pdm *PetarDambovalievEngine) FindSubstrings(text string) (matches chan *Ma
 	return
 }
 
-type EmptyMachine struct {
+// EmptyEngine implements SubstringEngine with an nop
+type EmptyEngine struct {
 }
 
 // BuildEngine implements BuildEngine with an nop
-func (pdm *EmptyMachine) BuildEngine(keywords map[string]struct{}) (err error) {
+func (pdm *EmptyEngine) BuildEngine(keywords map[string]struct{}) (err error) {
 	return
 }
 
 // BuildEngine implements FindSubstrings with an nop
-func (pdm *EmptyMachine) FindSubstrings(text string) (matches chan *Match, err error) {
+func (pdm *EmptyEngine) FindSubstrings(text string) (matches chan *Match, err error) {
 	matches = make(chan *Match, 10)
 	defer close(matches)
 	return
