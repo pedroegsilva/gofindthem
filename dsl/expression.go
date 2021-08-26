@@ -203,9 +203,10 @@ func (so SolverOrder) Solve(patterResByKeyword map[string]PatternResult, complet
 // CreateSolverOrder traverses the expression tree in Preorder and
 // stores the expressions on SolverOrder
 func (exp *Expression) CreateSolverOrder() SolverOrder {
-	test := new(SolverOrder)
-	createSolverOrder(exp, test)
-	return *test
+	solverOrder := new(SolverOrder)
+	cpExp := exp
+	createSolverOrder(cpExp, solverOrder)
+	return *solverOrder
 }
 
 // createSolverOrder recursion that traverses the expression

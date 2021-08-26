@@ -3,9 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"strings"
-
-	"github.com/pedroegsilva/gofindthem/dsl"
 
 	"github.com/pedroegsilva/gofindthem/finder"
 )
@@ -25,7 +22,7 @@ By contrast, PostScript is a Turing complete language, and in principle can be u
 from "https://en.wikipedia.org/wiki/Domain-specific_language"`,
 	}
 
-	findthem := finder.NewFinder(&finder.CloudflareEngine{})
+	findthem := finder.NewFinder(&finder.PetarDambovalievEngine{}, false)
 
 	if err := findthem.AddExpression(`"computer" and "language"`); err != nil {
 		log.Fatal(err)
@@ -35,7 +32,7 @@ from "https://en.wikipedia.org/wiki/Domain-specific_language"`,
 		log.Fatal(err)
 	}
 
-	if err := findthem.AddExpression(`("HTML" OR "features")`); err != nil {
+	if err := findthem.AddExpression(`("html" OR "features")`); err != nil {
 		log.Fatal(err)
 	}
 
@@ -57,11 +54,4 @@ from "https://en.wikipedia.org/wiki/Domain-specific_language"`,
 		}
 		fmt.Println("------------------------------------")
 	}
-	exp, err := dsl.NewParser(strings.NewReader(`(("1" and( "1" and "1")) and( "1" and "1")) and (("1" and ("1" and "1")) and ("1" and "1"))`)).Parse()
-	//exp, err := dsl.NewParser(strings.NewReader(`"1" and "2" and "3"`)).Parse()
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(exp.PrettyFormat())
-	exp.CreateSolverOrder()
 }

@@ -233,7 +233,7 @@ func TestSolver(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		exp, err := NewParser(strings.NewReader(tc.expStr)).Parse()
+		exp, err := NewParser(strings.NewReader(tc.expStr), true).Parse()
 		assert.Nil(err, tc.message+" iter")
 		respInt, err := exp.Solve(tc.solverMap, false)
 		assert.Nil(err, tc.message+" iter")
@@ -467,7 +467,7 @@ func TestSolverInter(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		exp, err := NewParser(strings.NewReader(tc.expStr)).Parse()
+		exp, err := NewParser(strings.NewReader(tc.expStr), true).Parse()
 		arr := exp.CreateSolverOrder()
 		assert.Nil(err, tc.message+" iter")
 		respInt, err := arr.Solve(tc.solverMap, false)
@@ -475,3 +475,5 @@ func TestSolverInter(t *testing.T) {
 		assert.Equal(tc.expectedResp, respInt, tc.message+" iter")
 	}
 }
+
+// TODO(pedro.silva) create unit test for CreateSolverOrder

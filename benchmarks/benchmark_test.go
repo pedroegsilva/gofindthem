@@ -290,12 +290,12 @@ func BenchmarkDslWithPetarDambovaliev1000Exps(b *testing.B) {
 
 func BMParser(exp string, b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		dsl.NewParser(strings.NewReader(exp)).Parse()
+		dsl.NewParser(strings.NewReader(exp), true).Parse()
 	}
 }
 
 func BMSolver(exp string, solverMap map[string]dsl.PatternResult, completeMap bool, b *testing.B) {
-	p := dsl.NewParser(strings.NewReader(exp))
+	p := dsl.NewParser(strings.NewReader(exp), true)
 	e, _ := p.Parse()
 	for i := 0; i < b.N; i++ {
 		e.Solve(solverMap, completeMap)
@@ -303,7 +303,7 @@ func BMSolver(exp string, solverMap map[string]dsl.PatternResult, completeMap bo
 }
 
 func BMSolverIter(exp string, solverMap map[string]dsl.PatternResult, completeMap bool, b *testing.B) {
-	p := dsl.NewParser(strings.NewReader(exp))
+	p := dsl.NewParser(strings.NewReader(exp), true)
 	e, _ := p.Parse()
 	so := e.CreateSolverOrder()
 	for i := 0; i < b.N; i++ {
@@ -312,7 +312,7 @@ func BMSolverIter(exp string, solverMap map[string]dsl.PatternResult, completeMa
 }
 
 func BMCloudFlareBuild(exp string, b *testing.B) {
-	p := dsl.NewParser(strings.NewReader(exp))
+	p := dsl.NewParser(strings.NewReader(exp), true)
 	p.Parse()
 	dict := [][]byte{}
 	for key := range p.GetKeywords() {
@@ -325,7 +325,7 @@ func BMCloudFlareBuild(exp string, b *testing.B) {
 }
 
 func BMAnknownBuild(exp string, b *testing.B) {
-	p := dsl.NewParser(strings.NewReader(exp))
+	p := dsl.NewParser(strings.NewReader(exp), true)
 	p.Parse()
 	dict := [][]rune{}
 	for key := range p.GetKeywords() {
@@ -339,7 +339,7 @@ func BMAnknownBuild(exp string, b *testing.B) {
 }
 
 func BMPetarDambovalievBuild(exp string, b *testing.B) {
-	p := dsl.NewParser(strings.NewReader(exp100))
+	p := dsl.NewParser(strings.NewReader(exp100), true)
 	p.Parse()
 	dict := []string{}
 
@@ -359,7 +359,7 @@ func BMPetarDambovalievBuild(exp string, b *testing.B) {
 }
 
 func BMCloudFlareSearch(exps []string, b *testing.B) {
-	findthem := finder.NewFinder(&finder.EmptyEngine{})
+	findthem := finder.NewFinder(&finder.EmptyEngine{}, true)
 	for _, exp := range exps {
 		findthem.AddExpression(exp)
 	}
@@ -378,7 +378,7 @@ func BMCloudFlareSearch(exps []string, b *testing.B) {
 }
 
 func BMAnknownSearch(exps []string, b *testing.B) {
-	findthem := finder.NewFinder(&finder.EmptyEngine{})
+	findthem := finder.NewFinder(&finder.EmptyEngine{}, true)
 	for _, exp := range exps {
 		findthem.AddExpression(exp)
 	}
@@ -398,7 +398,7 @@ func BMAnknownSearch(exps []string, b *testing.B) {
 }
 
 func BMPetarDambovalievSearch(exps []string, b *testing.B) {
-	findthem := finder.NewFinder(&finder.EmptyEngine{})
+	findthem := finder.NewFinder(&finder.EmptyEngine{}, true)
 	for _, exp := range exps {
 		findthem.AddExpression(exp)
 	}
@@ -422,7 +422,7 @@ func BMPetarDambovalievSearch(exps []string, b *testing.B) {
 }
 
 func BMDslSearch(exps []string, subEng finder.SubstringEngine, b *testing.B) {
-	findthem := finder.NewFinder(subEng)
+	findthem := finder.NewFinder(subEng, false)
 	for _, exp := range exps {
 		findthem.AddExpression(exp)
 	}

@@ -23,5 +23,6 @@ go_test(
     deps = [
         "//dsl",
         "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//mock",
     ],
 )

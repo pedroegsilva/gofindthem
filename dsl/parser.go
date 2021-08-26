@@ -3,6 +3,7 @@ package dsl
 import (
 	"fmt"
 	"io"
+	"strings"
 )
 
 // Parser parser struct that holds needed information to
@@ -14,13 +15,20 @@ type Parser struct {
 		lit       string // last read literal
 		unscanned bool   // if it was unscanned
 	}
-	keywords map[string]struct{}
-	parCount int
+	keywords     map[string]struct{}
+	parCount     int
+	casesesitive bool
 }
 
 // NewParser returns a new instance of Parser.
-func NewParser(r io.Reader) *Parser {
-	return &Parser{s: NewScanner(r), keywords: make(map[string]struct{}), parCount: 0}
+// If casesessitive is not set all terms are changed to lowercase
+func NewParser(r io.Reader, casesesitive bool) *Parser {
+	return &Parser{
+		s:            NewScanner(r),
+		keywords:     make(map[string]struct{}),
+		parCount:     0,
+		casesesitive: casesesitive,
+	}
 }
 
 // GetKeywords returns the set of UNIT terms (Keywords) that where
@@ -63,6 +71,9 @@ func (p *Parser) parse() (*Expression, error) {
 			}
 
 		case KEYWORD:
+			if !p.casesesitive {
+				lit = strings.ToLower(lit)
+			}
 			keyExp := &Expression{
 				Type:    UNIT_EXPR,
 				Literal: lit,
@@ -72,6 +83,7 @@ func (p *Parser) parse() (*Expression, error) {
 			} else {
 				exp.RExpr = keyExp
 			}
+
 			p.keywords[lit] = struct{}{}
 
 		case AND:
@@ -97,6 +109,9 @@ func (p *Parser) parse() (*Expression, error) {
 
 			switch nextTok {
 			case KEYWORD:
+				if !p.casesesitive {
+					nextLit = strings.ToLower(nextLit)
+				}
 				notExp.RExpr = &Expression{
 					Type:    UNIT_EXPR,
 					Literal: nextLit,

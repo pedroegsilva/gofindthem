@@ -18,7 +18,7 @@ type Match struct {
 type SubstringEngine interface {
 	// BuildEngine receive the unique terms that need
 	// to be searched to create the engine support structures
-	BuildEngine(keywords map[string]struct{}) (err error)
+	BuildEngine(keywords map[string]struct{}, caseSensitive bool) (err error)
 	// FindSubstrings receive the text and searchs for the feeded
 	// terms
 	FindSubstrings(text string) (result chan *Match, err error)
@@ -32,7 +32,7 @@ type AnknownEngine struct {
 
 // BuildEngine implements BuildEngine using the
 // github.com/anknown/ahocorasick package
-func (am *AnknownEngine) BuildEngine(keywords map[string]struct{}) (err error) {
+func (am *AnknownEngine) BuildEngine(keywords map[string]struct{}, caseSensitive bool) (err error) {
 	dict := [][]rune{}
 	for key := range keywords {
 		dict = append(dict, []rune(key))
@@ -72,7 +72,7 @@ type CloudflareEngine struct {
 
 // BuildEngine implements BuildEngine using the
 // github.com/cloudflare/ahocorasick package
-func (cfm *CloudflareEngine) BuildEngine(keywords map[string]struct{}) (err error) {
+func (cfm *CloudflareEngine) BuildEngine(keywords map[string]struct{}, caseSensitive bool) (err error) {
 	dict := []string{}
 	for key := range keywords {
 		dict = append(dict, key)
@@ -107,13 +107,13 @@ type PetarDambovalievEngine struct {
 
 // BuildEngine implements BuildEngine using the
 // github.com/petar-dambovaliev/aho-corasick package
-func (pdm *PetarDambovalievEngine) BuildEngine(keywords map[string]struct{}) (err error) {
+func (pdm *PetarDambovalievEngine) BuildEngine(keywords map[string]struct{}, caseSensitive bool) (err error) {
 	dict := make([]string, 0, len(keywords))
 	for key := range keywords {
 		dict = append(dict, key)
 	}
 	builder := pdahocorasick.NewAhoCorasickBuilder(pdahocorasick.Opts{
-		AsciiCaseInsensitive: true,
+		AsciiCaseInsensitive: !caseSensitive,
 		MatchOnlyWholeWords:  false,
 		MatchKind:            pdahocorasick.StandardMatch,
 		DFA:                  true,
@@ -145,7 +145,7 @@ type EmptyEngine struct {
 }
 
 // BuildEngine implements BuildEngine with an nop
-func (pdm *EmptyEngine) BuildEngine(keywords map[string]struct{}) (err error) {
+func (pdm *EmptyEngine) BuildEngine(keywords map[string]struct{}, caseSensitive bool) (err error) {
 	return
 }
 

@@ -234,10 +234,11 @@ func TestParser(t *testing.T) {
 			fmt.Errorf("invalid expression: Unexpected token 'EOF' after NOT"),
 			"invalid expression incomplete dual exp",
 		},
+		// TODO(pedro.silva) add test with case insensitive
 	}
 
 	for _, tc := range tests {
-		p := NewParser(strings.NewReader(tc.expStr))
+		p := NewParser(strings.NewReader(tc.expStr), true)
 		exp, err := p.Parse()
 		assert.Equal(tc.expectedErr, err, tc.message)
 		if err == nil {

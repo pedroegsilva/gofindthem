@@ -20,14 +20,18 @@ type Finder struct {
 	keywords       map[string]struct{}
 	subEng         SubstringEngine
 	updatedMachine bool
+	caseSensitive  bool
 }
 
 // NewFinder retruns a new instace of Finder
-func NewFinder(subEng SubstringEngine) (finder *Finder) {
+// Setting the engine and if the search will be case sensitive or not.
+func NewFinder(subEng SubstringEngine, caseSensitive bool) (finder *Finder) {
 	return &Finder{
+		expressions:    make([]exprWrapper, 0),
 		keywords:       make(map[string]struct{}),
 		subEng:         subEng,
 		updatedMachine: false,
+		caseSensitive:  caseSensitive,
 	}
 }
 
@@ -35,7 +39,7 @@ func NewFinder(subEng SubstringEngine) (finder *Finder) {
 // and store the terms that are going to be used by the substring engine
 // If the expression is malformed returns an erro.
 func (finder *Finder) AddExpression(expression string) error {
-	p := dsl.NewParser(strings.NewReader(expression))
+	p := dsl.NewParser(strings.NewReader(expression), finder.caseSensitive)
 	exp, err := p.Parse()
 	if err != nil {
 		return err
@@ -55,13 +59,15 @@ func (finder *Finder) AddExpression(expression string) error {
 // and returns a map with the expression string as key and its evaluation as value
 func (finder *Finder) ProcessText(text string) (evalResp map[string]bool, err error) {
 	if !finder.updatedMachine {
-		err = finder.subEng.BuildEngine(finder.keywords)
+		err = finder.subEng.BuildEngine(finder.keywords, finder.caseSensitive)
 		if err != nil {
 			return
 		}
 		finder.updatedMachine = true
 	}
-
+	if !finder.caseSensitive {
+		text = strings.ToLower(text)
+	}
 	matches, err := finder.subEng.FindSubstrings(text)
 	if err != nil {
 		return
@@ -76,14 +82,20 @@ func (finder *Finder) ProcessText(text string) (evalResp map[string]bool, err er
 // createSolverMap creates a map with the matching terms positions and value
 func (finder *Finder) createSolverMap(matches chan *Match) (solverMap map[string]dsl.PatternResult) {
 	solverMap = make(map[string]dsl.PatternResult)
-
 	for match := range matches {
-		if pattRes, ok := solverMap[match.Substring]; ok {
+		key := match.Substring
+		// if the engine returns the substring that was actualy matched
+		// we turn the key to lower to avoid inconsistency
+		if !finder.caseSensitive {
+			key = strings.ToLower(key)
+		}
+
+		if pattRes, ok := solverMap[key]; ok {
 			pattRes.Val = true
 			pattRes.SortedMatchPos = append(pattRes.SortedMatchPos, match.Position)
-			solverMap[match.Substring] = pattRes
+			solverMap[key] = pattRes
 		} else {
-			solverMap[match.Substring] = dsl.PatternResult{
+			solverMap[key] = dsl.PatternResult{
 				Val:            true,
 				SortedMatchPos: []int{match.Position},
 			}
@@ -108,7 +120,7 @@ func (finder *Finder) solveExpressions(solverMap map[string]dsl.PatternResult) (
 // ForceBuild forces the substring engine to be built if needed
 func (finder *Finder) ForceBuild() (err error) {
 	if !finder.updatedMachine {
-		err = finder.subEng.BuildEngine(finder.keywords)
+		err = finder.subEng.BuildEngine(finder.keywords, finder.caseSensitive)
 		if err != nil {
 			return
 		}
