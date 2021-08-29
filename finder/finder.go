@@ -65,9 +65,11 @@ func (finder *Finder) ProcessText(text string) (evalResp map[string]bool, err er
 		}
 		finder.updatedMachine = true
 	}
+
 	if !finder.caseSensitive {
 		text = strings.ToLower(text)
 	}
+
 	matches, err := finder.subEng.FindSubstrings(text)
 	if err != nil {
 		return

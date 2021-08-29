@@ -18,7 +18,7 @@ go_library(
 
 go_test(
     name = "finder_test",
-    srcs = ["finde_test.go"],
+    srcs = ["finder_test.go"],
     embed = [":finder"],
     deps = [
         "//dsl",

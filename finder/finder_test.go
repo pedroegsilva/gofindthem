@@ -361,3 +361,133 @@ func TestCreateSolverMap(t *testing.T) {
 		assert.Equal(tc.expectedSolverMap, solverMap, tc.message)
 	}
 }
+
+func TestSolveExpressions(t *testing.T) {
+	assert := assert.New(t)
+	lexp1 := &dsl.Expression{
+		Type:    dsl.UNIT_EXPR,
+		Literal: "sharpest",
+	}
+	rexp1 := &dsl.Expression{
+		Type:    dsl.UNIT_EXPR,
+		Literal: "words",
+	}
+	lexp2 := &dsl.Expression{
+		Type:    dsl.UNIT_EXPR,
+		Literal: "no one",
+	}
+	rexp2 := &dsl.Expression{
+		Type:    dsl.UNIT_EXPR,
+		Literal: "Can get in the way",
+	}
+	finder := &Finder{
+		expressions: []exprWrapper{
+			exprWrapper{
+				`"sharpest" and "words"`,
+				dsl.SolverOrder{
+					&dsl.Expression{
+						Type:  dsl.AND_EXPR,
+						LExpr: lexp1,
+						RExpr: rexp1,
+					},
+					lexp1,
+					rexp1,
+				},
+			},
+			exprWrapper{
+				`"no one" or "Can get in the way"`,
+				dsl.SolverOrder{
+					&dsl.Expression{
+						Type:  dsl.OR_EXPR,
+						LExpr: lexp2,
+						RExpr: rexp2,
+					},
+					lexp2,
+					rexp2,
+				},
+			},
+		},
+	}
+
+	tests := []struct {
+		finder       *Finder
+		solverMap    map[string]dsl.PatternResult
+		expectedEval map[string]bool
+		expectedErr  error
+		message      string
+	}{
+		{
+			finder: finder,
+			solverMap: map[string]dsl.PatternResult{
+				"sharpest": dsl.PatternResult{
+					Val: true,
+				},
+				"words": dsl.PatternResult{
+					Val: true,
+				},
+			},
+			expectedEval: map[string]bool{
+				`"sharpest" and "words"`:           true,
+				`"no one" or "Can get in the way"`: false,
+			},
+			expectedErr: nil,
+			message:     "first exp true",
+		},
+		{
+			finder: finder,
+			solverMap: map[string]dsl.PatternResult{
+				"no one": dsl.PatternResult{
+					Val: true,
+				},
+			},
+			expectedEval: map[string]bool{
+				`"sharpest" and "words"`:           false,
+				`"no one" or "Can get in the way"`: true,
+			},
+			expectedErr: nil,
+			message:     "first exp true",
+		},
+		{
+			finder: finder,
+			solverMap: map[string]dsl.PatternResult{
+				"words": dsl.PatternResult{
+					Val: true,
+				},
+			},
+			expectedEval: map[string]bool{
+				`"sharpest" and "words"`:           false,
+				`"no one" or "Can get in the way"`: false,
+			},
+			expectedErr: nil,
+			message:     "both false",
+		},
+		{
+			finder: finder,
+			solverMap: map[string]dsl.PatternResult{
+				"sharpest": dsl.PatternResult{
+					Val: true,
+				},
+				"words": dsl.PatternResult{
+					Val: true,
+				},
+				"Can get in the way": dsl.PatternResult{
+					Val: true,
+				},
+			},
+			expectedEval: map[string]bool{
+				`"sharpest" and "words"`:           true,
+				`"no one" or "Can get in the way"`: true,
+			},
+			expectedErr: nil,
+			message:     "both true",
+		},
+	}
+
+	for _, tc := range tests {
+		evalResp, err := tc.finder.solveExpressions(tc.solverMap)
+		assert.Equal(tc.expectedErr, err, tc.message)
+		if err == nil {
+			assert.Equal(tc.expectedEval, evalResp, tc.message)
+		}
+	}
+}

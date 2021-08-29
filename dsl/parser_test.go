@@ -15,35 +15,38 @@ func TestParser(t *testing.T) {
 		expectedExp      Expression
 		expectedKeywords map[string]struct{}
 		expectedErr      error
+		caseSense        bool
 		message          string
 	}{
 		{
-			`"1"`,
-			Expression{
+			expStr: `"1"`,
+			expectedExp: Expression{
 				Type:    UNIT_EXPR,
 				Literal: "1",
 			},
-			map[string]struct{}{
+			expectedKeywords: map[string]struct{}{
 				"1": struct{}{},
 			},
-			nil,
-			"single word",
+			expectedErr: nil,
+			caseSense:   true,
+			message:     "single word",
 		},
 		{
-			`("1")`,
-			Expression{
+			expStr: `("1")`,
+			expectedExp: Expression{
 				Type:    UNIT_EXPR,
 				Literal: "1",
 			},
-			map[string]struct{}{
+			expectedKeywords: map[string]struct{}{
 				"1": struct{}{},
 			},
-			nil,
-			"single word parentheses",
+			expectedErr: nil,
+			caseSense:   true,
+			message:     "single word parentheses",
 		},
 		{
-			`"1" and "2"`,
-			Expression{
+			expStr: `"1" and "2"`,
+			expectedExp: Expression{
 				Type: AND_EXPR,
 				LExpr: &Expression{
 					Type:    UNIT_EXPR,
@@ -54,16 +57,17 @@ func TestParser(t *testing.T) {
 					Literal: "2",
 				},
 			},
-			map[string]struct{}{
+			expectedKeywords: map[string]struct{}{
 				"1": struct{}{},
 				"2": struct{}{},
 			},
-			nil,
-			"simple and",
+			expectedErr: nil,
+			caseSense:   true,
+			message:     "simple and",
 		},
 		{
-			`("1" and "2")`,
-			Expression{
+			expStr: `("1" and "2")`,
+			expectedExp: Expression{
 				Type: AND_EXPR,
 				LExpr: &Expression{
 					Type:    UNIT_EXPR,
@@ -74,16 +78,17 @@ func TestParser(t *testing.T) {
 					Literal: "2",
 				},
 			},
-			map[string]struct{}{
+			expectedKeywords: map[string]struct{}{
 				"1": struct{}{},
 				"2": struct{}{},
 			},
-			nil,
-			"simple and parentheses",
+			expectedErr: nil,
+			caseSense:   true,
+			message:     "simple and parentheses",
 		},
 		{
-			`"1" or "2"`,
-			Expression{
+			expStr: `"1" or "2"`,
+			expectedExp: Expression{
 				Type: OR_EXPR,
 				LExpr: &Expression{
 					Type:    UNIT_EXPR,
@@ -94,31 +99,33 @@ func TestParser(t *testing.T) {
 					Literal: "2",
 				},
 			},
-			map[string]struct{}{
+			expectedKeywords: map[string]struct{}{
 				"1": struct{}{},
 				"2": struct{}{},
 			},
-			nil,
-			"simple or",
+			expectedErr: nil,
+			caseSense:   true,
+			message:     "simple or",
 		},
 		{
-			`not "1"`,
-			Expression{
+			expStr: `not "1"`,
+			expectedExp: Expression{
 				Type: NOT_EXPR,
 				RExpr: &Expression{
 					Type:    UNIT_EXPR,
 					Literal: "1",
 				},
 			},
-			map[string]struct{}{
+			expectedKeywords: map[string]struct{}{
 				"1": struct{}{},
 			},
-			nil,
-			"simple not",
+			expectedErr: nil,
+			caseSense:   true,
+			message:     "simple not",
 		},
 		{
-			`"1" and "2" or not "3"`,
-			Expression{
+			expStr: `"1" and "2" or not "3"`,
+			expectedExp: Expression{
 				Type: OR_EXPR,
 				LExpr: &Expression{
 					Type: AND_EXPR,
@@ -139,17 +146,18 @@ func TestParser(t *testing.T) {
 					},
 				},
 			},
-			map[string]struct{}{
+			expectedKeywords: map[string]struct{}{
 				"1": struct{}{},
 				"2": struct{}{},
 				"3": struct{}{},
 			},
-			nil,
-			"multiple function no parentheses",
+			expectedErr: nil,
+			caseSense:   true,
+			message:     "multiple function no parentheses",
 		},
 		{
-			`"1" and ("2" or not "3")`,
-			Expression{
+			expStr: `"1" and ("2" or not "3")`,
+			expectedExp: Expression{
 				Type: AND_EXPR,
 				LExpr: &Expression{
 					Type:    UNIT_EXPR,
@@ -170,75 +178,104 @@ func TestParser(t *testing.T) {
 					},
 				},
 			},
-			map[string]struct{}{
+			expectedKeywords: map[string]struct{}{
 				"1": struct{}{},
 				"2": struct{}{},
 				"3": struct{}{},
 			},
-			nil,
-			"multiple function with parentheses",
+			expectedErr: nil,
+			caseSense:   true,
+			message:     "multiple function with parentheses",
 		},
 		{
-			``,
-			Expression{},
-			map[string]struct{}{},
-			fmt.Errorf("invalid expression: unexpected EOF found"),
-			"empty expression",
+			expStr:           ``,
+			expectedExp:      Expression{},
+			expectedKeywords: map[string]struct{}{},
+			expectedErr:      fmt.Errorf("invalid expression: unexpected EOF found"),
+			caseSense:        true,
+			message:          "empty expression",
 		},
 		{
-			`(("1")`,
-			Expression{},
-			map[string]struct{}{},
-			fmt.Errorf("invalid expression: Unexpected '('"),
-			"invalid open parentheses",
+			expStr:           `(("1")`,
+			expectedExp:      Expression{},
+			expectedKeywords: map[string]struct{}{},
+			expectedErr:      fmt.Errorf("invalid expression: Unexpected '('"),
+			caseSense:        true,
+			message:          "invalid open parentheses",
 		},
 		{
-			`("1"))`,
-			Expression{},
-			map[string]struct{}{},
-			fmt.Errorf("invalid expression: unexpected EOF found. Extra closing parentheses: 1"),
-			"invalid close parentheses",
+			expStr:           `("1"))`,
+			expectedExp:      Expression{},
+			expectedKeywords: map[string]struct{}{},
+			expectedErr:      fmt.Errorf("invalid expression: unexpected EOF found. Extra closing parentheses: 1"),
+			caseSense:        true,
+			message:          "invalid close parentheses",
 		},
 		{
-			`and`,
-			Expression{},
-			map[string]struct{}{},
-			fmt.Errorf("invalid expression: no left expression was found for AND"),
-			"invalid expression empty dual exp",
+			expStr:           `and`,
+			expectedExp:      Expression{},
+			expectedKeywords: map[string]struct{}{},
+			expectedErr:      fmt.Errorf("invalid expression: no left expression was found for AND"),
+			caseSense:        true,
+			message:          "invalid expression empty dual exp",
 		},
 		{
-			` "1" and `,
-			Expression{},
-			map[string]struct{}{},
-			fmt.Errorf("invalid expression: incomplete expression AND"),
-			"invalid expression incomplete dual exp",
+			expStr:           ` "1" and `,
+			expectedExp:      Expression{},
+			expectedKeywords: map[string]struct{}{},
+			expectedErr:      fmt.Errorf("invalid expression: incomplete expression AND"),
+			caseSense:        true,
+			message:          "invalid expression incomplete dual exp",
 		},
 		{
-			`or`,
-			Expression{},
-			map[string]struct{}{},
-			fmt.Errorf("invalid expression: no left expression was found for OR"),
-			"invalid expression empty dual exp",
+			expStr:           `or`,
+			expectedExp:      Expression{},
+			expectedKeywords: map[string]struct{}{},
+			expectedErr:      fmt.Errorf("invalid expression: no left expression was found for OR"),
+			caseSense:        true,
+			message:          "invalid expression empty dual exp",
 		},
 		{
-			` "1" or `,
-			Expression{},
-			map[string]struct{}{},
-			fmt.Errorf("invalid expression: incomplete expression OR"),
-			"invalid expression incomplete dual exp",
+			expStr:           ` "1" or `,
+			expectedExp:      Expression{},
+			expectedKeywords: map[string]struct{}{},
+			expectedErr:      fmt.Errorf("invalid expression: incomplete expression OR"),
+			caseSense:        true,
+			message:          "invalid expression incomplete dual exp",
 		},
 		{
-			`not`,
-			Expression{},
-			map[string]struct{}{},
-			fmt.Errorf("invalid expression: Unexpected token 'EOF' after NOT"),
-			"invalid expression incomplete dual exp",
+			expStr:           `not`,
+			expectedExp:      Expression{},
+			expectedKeywords: map[string]struct{}{},
+			expectedErr:      fmt.Errorf("invalid expression: Unexpected token 'EOF' after NOT"),
+			caseSense:        true,
+			message:          "invalid expression incomplete dual exp",
 		},
-		// TODO(pedro.silva) add test with case insensitive
+		{
+			expStr: `"CaSe In sensItIVe" and "SomeThing"`,
+			expectedExp: Expression{
+				Type: AND_EXPR,
+				LExpr: &Expression{
+					Type:    UNIT_EXPR,
+					Literal: "case in sensitive",
+				},
+				RExpr: &Expression{
+					Type:    UNIT_EXPR,
+					Literal: "something",
+				},
+			},
+			expectedKeywords: map[string]struct{}{
+				"case in sensitive": struct{}{},
+				"something":         struct{}{},
+			},
+			expectedErr: nil,
+			caseSense:   false,
+			message:     "case insensitive test",
+		},
 	}
 
 	for _, tc := range tests {
-		p := NewParser(strings.NewReader(tc.expStr), true)
+		p := NewParser(strings.NewReader(tc.expStr), tc.caseSense)
 		exp, err := p.Parse()
 		assert.Equal(tc.expectedErr, err, tc.message)
 		if err == nil {

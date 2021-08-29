@@ -22,8 +22,8 @@ func TestScanner(t *testing.T) {
 		message  string
 	}{
 		{
-			`and   or   not  "keyword 1"  (   )`,
-			[]expectedAtScan{
+			expStr: `and   or   not  "keyword 1"  (   )`,
+			expected: []expectedAtScan{
 				expectedAtScan{Tok: AND, Lit: "and", Err: nil},
 				expectedAtScan{Tok: WS, Lit: "   ", Err: nil},
 				expectedAtScan{Tok: OR, Lit: "or", Err: nil},
@@ -37,33 +37,33 @@ func TestScanner(t *testing.T) {
 				expectedAtScan{Tok: CLPAR, Lit: ")", Err: nil},
 				expectedAtScan{Tok: EOF, Lit: "", Err: nil},
 			},
-			"all tokens",
+			message: "all tokens",
 		},
 		{
-			`invalidOne`,
-			[]expectedAtScan{
+			expStr: `invalidOne`,
+			expected: []expectedAtScan{
 				expectedAtScan{
 					Tok: ILLEGAL,
 					Lit: "",
 					Err: fmt.Errorf("fail to scan operator: unexpected operator 'invalidOne' found"),
 				},
 			},
-			"invalid operator token",
+			message: "invalid operator token",
 		},
 		{
-			`"invalidKeyword `,
-			[]expectedAtScan{
+			expStr: `"invalidKeyword `,
+			expected: []expectedAtScan{
 				expectedAtScan{
 					Tok: ILLEGAL,
 					Lit: "",
 					Err: fmt.Errorf("fail to scan keyword: expected \" but found EOF"),
 				},
 			},
-			"invalid keyword token",
+			message: "invalid keyword token",
 		},
 		{
-			`"keyword \n \r \t \\ \" "`,
-			[]expectedAtScan{
+			expStr: `"keyword \n \r \t \\ \" "`,
+			expected: []expectedAtScan{
 				expectedAtScan{
 					Tok: KEYWORD,
 					Lit: "keyword \n \r \t \\ \" ",
@@ -71,11 +71,11 @@ func TestScanner(t *testing.T) {
 				},
 				expectedAtScan{Tok: EOF, Lit: "", Err: nil},
 			},
-			"valid scaped keyword",
+			message: "valid scaped keyword",
 		},
 		{
-			`"keyword \s"`,
-			[]expectedAtScan{
+			expStr: `"keyword \s"`,
+			expected: []expectedAtScan{
 				expectedAtScan{
 					Tok: ILLEGAL,
 					Lit: "",
@@ -83,19 +83,19 @@ func TestScanner(t *testing.T) {
 				},
 				expectedAtScan{Tok: EOF, Lit: "", Err: nil},
 			},
-			"invalid scaped keyword",
+			message: "invalid scaped keyword",
 		},
 
 		{
-			`123`,
-			[]expectedAtScan{
+			expStr: `123`,
+			expected: []expectedAtScan{
 				expectedAtScan{
 					Tok: ILLEGAL,
 					Lit: "",
 					Err: fmt.Errorf("Illegal char was found 1"),
 				},
 			},
-			"invalid scaped keyword",
+			message: "invalid scaped keyword",
 		},
 	}
 
