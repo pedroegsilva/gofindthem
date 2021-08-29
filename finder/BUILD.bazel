@@ -1,10 +1,10 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "finder",
     srcs = [
-        "ahocorasickMachine.go",
         "finder.go",
+        "substringEngine.go",
     ],
     importpath = "github.com/pedroegsilva/gofindthem/finder",
     visibility = ["//visibility:public"],
@@ -13,5 +13,16 @@ go_library(
         "@com_github_anknown_ahocorasick//:ahocorasick",
         "@com_github_cloudflare_ahocorasick//:ahocorasick",
         "@com_github_petar_dambovaliev_aho_corasick//:aho-corasick",
+    ],
+)
+
+go_test(
+    name = "finder_test",
+    srcs = ["finder_test.go"],
+    embed = [":finder"],
+    deps = [
+        "//dsl",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//mock",
     ],
 )

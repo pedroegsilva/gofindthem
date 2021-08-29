@@ -2,7 +2,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_test")
 
 go_test(
     name = "benchmarks_test",
-    srcs = ["finder_test.go"],
+    srcs = ["benchmark_test.go"],
     data = [":files/words.txt"],
     deps = [
         "//dsl",

@@ -31,6 +31,7 @@ const (
 	NOT // 'not' or 'NOT'
 )
 
+// getName retuns a readable name for the Token
 func (tok Token) getName() string {
 	switch tok {
 	case ILLEGAL:
@@ -74,8 +75,9 @@ func (s *Scanner) Scan() (tok Token, lit string, err error) {
 	ch := s.read()
 
 	// If we see whitespace then consume all contiguous whitespace.
-	// If we see a letter then consume as an ident or reserved word.
-	// If we see a digit then consume as a number.
+	// If we see a letter then consume as an operator.
+	// If we see a '"' consume as a KEYWORD.
+	// If we see a '(' or ')' returns OPPAR or CLPAR respectively
 	switch {
 	case isWhitespace(ch):
 		s.unread()
@@ -143,7 +145,8 @@ func (s *Scanner) scanOperators() (tok Token, lit string, err error) {
 		}
 	}
 
-	// If the string matches a keyword then return that keyword.
+	// If the string matches a operator then return that operator.
+	// Otherwise return an error.
 	lit = buf.String()
 	switch strings.ToUpper(lit) {
 	case "AND":
@@ -156,10 +159,12 @@ func (s *Scanner) scanOperators() (tok Token, lit string, err error) {
 		return ILLEGAL, "", fmt.Errorf(fmt.Sprintf("fail to scan operator: unexpected operator '%s' found", lit))
 	}
 
-	// Otherwise return as a regular identifier.
 	return
 }
 
+// scanKeyword scans the keyword and scape needed characters
+// If a invalid scape is used an erro will be returned and if EOF is found
+// before a '"' returns an error aswell.
 func (s *Scanner) scanKeyword() (tok Token, lit string, err error) {
 	ch := s.read()
 	if ch != '"' {
@@ -221,9 +226,6 @@ func isWhitespace(ch rune) bool { return ch == ' ' || ch == '\t' || ch == '\n' }
 
 // isLetter returns true if the rune is a letter.
 func isLetter(ch rune) bool { return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') }
-
-// isDigit returns true if the rune is a digit.
-func isDigit(ch rune) bool { return (ch >= '0' && ch <= '9') }
 
 // eof represents a marker rune for the end of the reader.
 var eof = rune(0)
