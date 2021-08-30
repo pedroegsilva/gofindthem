@@ -18,6 +18,9 @@ Making each kind of terms use its respective engine to find its matches and redu
 
 This repository is the golang implementation of this idea.
 
+The scanner and parser form the DSL are heavily influenced by this post [medium parsers-lexers](https://blog.gopheracademy.com/advent-2014/parsers-lexers/) of Ben Johnson,
+from whitch is heavily influenced by the [InfluxQL parser](https://github.com/influxdb/influxdb/tree/master/influxql).
+
 PS: The INORD operator and Regex are not yet supported on this version.
 
 ## Usage/Examples
