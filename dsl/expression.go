@@ -51,7 +51,7 @@ type PatternResult struct {
 	SortedMatchPos []int
 }
 
-// getTypeName returns the type of the expression with a readable name
+// GetTypeName returns the type of the expression with a readable name
 func (exp *Expression) GetTypeName() string {
 	return exp.Type.GetName()
 }
@@ -123,10 +123,11 @@ func (exp *Expression) Solve(
 
 // PrettyPrint returns the expression formated on a tabbed structure
 // Eg: for the expression ("a" and "b") or "c"
-// OR
-//     AND
-//         a
-//         b
+//    OR
+//        AND
+//            a
+//            b
+//        c
 func (exp *Expression) PrettyFormat() string {
 	return exp.prettyFormat(0)
 }

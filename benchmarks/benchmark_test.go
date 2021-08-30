@@ -18,9 +18,6 @@ import (
 	pdahocorasick "github.com/petar-dambovaliev/aho-corasick"
 )
 
-// bazel run //dsl:dsl_test -- -test.bench=. -test.benchmem
-// bazel run //dsl:dsl_test -- -test.bench=Exps -test.benchmem
-
 func init() {
 	rand.Seed(1629074756677820700)
 	wordsPath, err := filepath.Abs(EN_WORDS_FILE)
