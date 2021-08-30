@@ -1,15 +1,15 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_library(
-    name = "examples_lib",
+    name = "dsl_lib",
     srcs = ["main.go"],
-    importpath = "github.com/pedroegsilva/gofindthem/examples",
+    importpath = "github.com/pedroegsilva/gofindthem/examples/dsl",
     visibility = ["//visibility:private"],
-    deps = ["//finder"],
+    deps = ["//dsl"],
 )
 
 go_binary(
-    name = "examples",
-    embed = [":examples_lib"],
+    name = "dsl",
+    embed = [":dsl_lib"],
     visibility = ["//visibility:public"],
 )
