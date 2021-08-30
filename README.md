@@ -12,14 +12,14 @@ So I needed a syntax that was easy enough to convince them to change.
 The idea was to create a DSL that would have the operators "AND", "OR" and "NOT" that were the same of the logical operations and a new operator "INORD"
 that would check if the terms were found on the same order that they were specified.
 This would allow searches that used the regex `foo.*bar` to be replaced with `INORD("foo" and "bar")` and the combination of regexes 
-`foo.*bar` and `bar.*foo` to be replaced as `"foo" and "bar"`. This is not suposed to be a replacement for regex, but it was enough for most use cases that I had back then.
+`foo.*bar` and `bar.*foo` to be replaced as `"foo" and "bar"`. This is not supposed to be a replacement for regex, but it was enough for most use cases that I had back then.
 For those cases that only regex would solve, I added a way to represent a regex with the syntax `R"foo.*bar"`.
 Making each kind of terms use its respective engine to find its matches and reducing the need to use regex for everything.
 
 This repository is the golang implementation of this idea.
 
 The scanner and parser form the DSL are heavily influenced by this post [medium parsers-lexers](https://blog.gopheracademy.com/advent-2014/parsers-lexers/) of Ben Johnson,
-from whitch is heavily influenced by the [InfluxQL parser](https://github.com/influxdb/influxdb/tree/master/influxql).
+from which is heavily influenced by the [InfluxQL parser](https://github.com/influxdb/influxdb/tree/master/influxql).
 
 PS: The INORD operator and Regex are not yet supported on this version.
 
@@ -127,10 +127,10 @@ Iteratively:
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("iteractive eval ", responseIter)
+	fmt.Println("iterative eval ", responseIter)
 ```
 The Iterative solution needs to create an array with the order in which the expressions need to be solved.
-It is faster then the recursive if you need to solve the expression more then 8 times (the gain in performace is around 13% from the benchmark results)
+It is faster then the recursive if you need to solve the expression more then 8 times (the gain in performance is around 13% from the benchmark results)
 
 The solvers also need to know if the map of matches is complete or not. If it is complete it will have the term as a key even if it was a no match.
 The incomplete option will assume that if a key is not present the term was not found.
@@ -149,7 +149,7 @@ If an incomplete map is provided and the key is not found an error will be retur
 The complete example can be found at `/examples/dsl/main.go`
 ## Run Locally
 This projects uses bazel to build and test the code. 
-You can run this project using go aswell.
+You can run this project using go as well.
 
 ### What is bazel?
 "Bazel is an open-source build and test tool similar to Make, Maven, and Gradle. It uses a human-readable, high-level build language. Bazel supports projects in multiple languages and builds outputs for multiple platforms. Bazel supports large codebases across multiple repositories, and large numbers of users." 

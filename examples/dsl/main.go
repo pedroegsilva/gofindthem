@@ -39,7 +39,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("iteractive eval ", responseIter)
+	fmt.Println("iterative eval ", responseIter)
 
 	// should return an error
 	_, err = expression.Solve(matches, true)
