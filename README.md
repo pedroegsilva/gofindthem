@@ -28,7 +28,7 @@ PS: The INORD operator and Regex are not yet supported on this version.
 There are 2 libraries on this repository, the DSL and the Finder.
 
 ### Finder
-First you need to create the Finder. The Finder needs a `SubstringEngine` (interface found at /finder/substringEngine.go) 
+First you need to create the Finder. The Finder needs a `SubstringEngine` (interface can be found at `/finder/substringEngine.go`) 
 and if the search will be case sensitive or not.
 there are 3 implementations of `SubstringEngine` that uses the libraries from 
 https://github.com/cloudflare/ahocorasick, 
