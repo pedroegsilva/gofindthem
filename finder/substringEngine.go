@@ -6,13 +6,6 @@ import (
 	pdahocorasick "github.com/petar-dambovaliev/aho-corasick"
 )
 
-// Match holds the maching position
-// and with substring that was found
-type Match struct {
-	Position  int
-	Substring string
-}
-
 // SubstringEngine interface that finder
 // uses to search for substrings on a given text
 type SubstringEngine interface {
@@ -55,8 +48,8 @@ func (am *AnknownEngine) FindSubstrings(text string) (matches chan *Match, err e
 		ms := am.AhoEngine.MultiPatternSearch([]rune(text), false)
 		for _, m := range ms {
 			matches <- &Match{
-				Substring: string(m.Word),
-				Position:  m.Pos,
+				Term:     string(m.Word),
+				Position: m.Pos,
 			}
 		}
 	}()
@@ -91,8 +84,8 @@ func (cfm *CloudflareEngine) FindSubstrings(text string) (matches chan *Match, e
 		ms := cfm.Matcher.Match([]byte(text))
 		for _, m := range ms {
 			matches <- &Match{
-				Substring: cfm.Dict[m],
-				Position:  0,
+				Term:     cfm.Dict[m],
+				Position: 0,
 			}
 		}
 	}()
@@ -132,8 +125,8 @@ func (pdm *PetarDambovalievEngine) FindSubstrings(text string) (matches chan *Ma
 		ms := pdm.AhoEngine.FindAll(text)
 		for _, m := range ms {
 			matches <- &Match{
-				Substring: text[m.Start():m.End()],
-				Position:  m.Start(),
+				Term:     text[m.Start():m.End()],
+				Position: m.Start(),
 			}
 		}
 	}()

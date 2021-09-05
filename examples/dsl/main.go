@@ -10,7 +10,7 @@ import (
 
 func main() {
 	caseSensitive := false
-	p := dsl.NewParser(strings.NewReader(`INORD("foo" and "bar" and ("dolor" or "accumsan"))`), caseSensitive)
+	p := dsl.NewParser(strings.NewReader(`INORD("foo" and "bar" and (r"dolor" or "accumsan"))`), caseSensitive)
 	expression, err := p.Parse()
 	if err != nil {
 		log.Fatal(err)
@@ -18,6 +18,9 @@ func main() {
 
 	keywords := p.GetKeywords()
 	fmt.Printf("keywords:\n%v\n", keywords)
+
+	regexes := p.GetRegexes()
+	fmt.Printf("regexes:\n%v\n", regexes)
 
 	fmt.Printf("pretty format:\n%s\n", expression.PrettyFormat())
 

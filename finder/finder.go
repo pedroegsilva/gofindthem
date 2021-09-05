@@ -6,6 +6,13 @@ import (
 	"github.com/pedroegsilva/gofindthem/dsl"
 )
 
+// Match holds the maching position
+// and with substring that was found
+type Match struct {
+	Position int
+	Term     string
+}
+
 // exprWrapper store the expression as a string and
 // the SolverOrder to later solve the expression.
 type exprWrapper struct {
@@ -16,22 +23,28 @@ type exprWrapper struct {
 // Finder stores the needed information to find the terms and solve the
 // feeded expressions
 type Finder struct {
-	expressions    []exprWrapper
-	keywords       map[string]struct{}
-	subEng         SubstringEngine
-	updatedMachine bool
-	caseSensitive  bool
+	expressions       []exprWrapper
+	keywords          map[string]struct{}
+	regexes           map[string]struct{}
+	subEng            SubstringEngine
+	rgxEng            RegexEngine
+	updatedSubMachine bool
+	updatedRgxMachine bool
+	caseSensitive     bool
 }
 
 // NewFinder retruns a new instace of Finder
 // Setting the engine and if the search will be case sensitive or not.
-func NewFinder(subEng SubstringEngine, caseSensitive bool) (finder *Finder) {
+func NewFinder(subEng SubstringEngine, rgxEng RegexEngine, caseSensitive bool) (finder *Finder) {
 	return &Finder{
-		expressions:    make([]exprWrapper, 0),
-		keywords:       make(map[string]struct{}),
-		subEng:         subEng,
-		updatedMachine: false,
-		caseSensitive:  caseSensitive,
+		expressions:       make([]exprWrapper, 0),
+		keywords:          make(map[string]struct{}),
+		regexes:           make(map[string]struct{}),
+		subEng:            subEng,
+		rgxEng:            rgxEng,
+		updatedSubMachine: false,
+		updatedRgxMachine: false,
+		caseSensitive:     caseSensitive,
 	}
 }
 
@@ -48,8 +61,13 @@ func (finder *Finder) AddExpression(expression string) error {
 	finder.expressions = append(finder.expressions, exprWrapper{expression, exp.CreateSolverOrder()})
 	for key := range p.GetKeywords() {
 		finder.keywords[key] = struct{}{}
+		finder.updatedSubMachine = false
 	}
-	finder.updatedMachine = false
+
+	for rgx := range p.GetRegexes() {
+		finder.regexes[rgx] = struct{}{}
+		finder.updatedRgxMachine = false
+	}
 
 	return nil
 }
@@ -58,52 +76,72 @@ func (finder *Finder) AddExpression(expression string) error {
 // Searches for matching terms and solves the feeded expressions.
 // and returns a map with the expression string as key and its evaluation as value
 func (finder *Finder) ProcessText(text string) (evalResp map[string]bool, err error) {
-	if !finder.updatedMachine {
-		err = finder.subEng.BuildEngine(finder.keywords, finder.caseSensitive)
-		if err != nil {
-			return
-		}
-		finder.updatedMachine = true
-	}
-
 	if !finder.caseSensitive {
 		text = strings.ToLower(text)
 	}
 
-	matches, err := finder.subEng.FindSubstrings(text)
-	if err != nil {
-		return
+	solverMap := make(map[string]dsl.PatternResult)
+
+	var keyMaches chan *Match
+	if len(finder.keywords) > 0 {
+		if !finder.updatedSubMachine {
+			err = finder.subEng.BuildEngine(finder.keywords, finder.caseSensitive)
+			if err != nil {
+				return
+			}
+			finder.updatedSubMachine = true
+		}
+
+		keyMaches, err = finder.subEng.FindSubstrings(text)
+		if err != nil {
+			return
+		}
+		finder.addMatchesToSolverMap(keyMaches, solverMap)
 	}
 
-	solverMap := finder.createSolverMap(matches)
+	if len(finder.regexes) > 0 {
+		if !finder.updatedRgxMachine {
+			err = finder.rgxEng.BuildEngine(finder.regexes, finder.caseSensitive)
+			if err != nil {
+				return
+			}
+			finder.updatedRgxMachine = true
+		}
+
+		keyMaches, err = finder.rgxEng.FindRegexes(text)
+		if err != nil {
+			return
+		}
+		finder.addMatchesToSolverMap(keyMaches, solverMap)
+	}
+
 	evalResp, err = finder.solveExpressions(solverMap)
 
 	return
 }
 
-// createSolverMap creates a map with the matching terms positions and value
-func (finder *Finder) createSolverMap(matches chan *Match) (solverMap map[string]dsl.PatternResult) {
-	solverMap = make(map[string]dsl.PatternResult)
-	for match := range matches {
-		key := match.Substring
-		// if the engine returns the substring that was actualy matched
-		// we turn the key to lower to avoid inconsistency
-		if !finder.caseSensitive {
-			key = strings.ToLower(key)
-		}
+func (finder *Finder) addMatchesToSolverMap(matches chan *Match, solverMap map[string]dsl.PatternResult) {
+	if matches != nil {
+		for match := range matches {
+			term := match.Term
+			// if the engine returns the substring that was actualy matched
+			// we turn the key to lower to avoid inconsistency
+			if !finder.caseSensitive {
+				term = strings.ToLower(term)
+			}
 
-		if pattRes, ok := solverMap[key]; ok {
-			pattRes.Val = true
-			pattRes.SortedMatchPos = append(pattRes.SortedMatchPos, match.Position)
-			solverMap[key] = pattRes
-		} else {
-			solverMap[key] = dsl.PatternResult{
-				Val:            true,
-				SortedMatchPos: []int{match.Position},
+			if pattRes, ok := solverMap[term]; ok {
+				pattRes.Val = true
+				pattRes.SortedMatchPos = append(pattRes.SortedMatchPos, match.Position)
+				solverMap[term] = pattRes
+			} else {
+				solverMap[term] = dsl.PatternResult{
+					Val:            true,
+					SortedMatchPos: []int{match.Position},
+				}
 			}
 		}
 	}
-	return
 }
 
 // solveExpressions solves all feeded expressions using the values of the solverMap
@@ -121,12 +159,20 @@ func (finder *Finder) solveExpressions(solverMap map[string]dsl.PatternResult) (
 
 // ForceBuild forces the substring engine to be built if needed
 func (finder *Finder) ForceBuild() (err error) {
-	if !finder.updatedMachine {
+	if !finder.updatedSubMachine {
 		err = finder.subEng.BuildEngine(finder.keywords, finder.caseSensitive)
 		if err != nil {
 			return
 		}
-		finder.updatedMachine = true
+		finder.updatedSubMachine = true
+	}
+
+	if !finder.updatedRgxMachine {
+		err = finder.rgxEng.BuildEngine(finder.regexes, finder.caseSensitive)
+		if err != nil {
+			return
+		}
+		finder.updatedSubMachine = true
 	}
 	return
 }

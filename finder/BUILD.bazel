@@ -4,6 +4,7 @@ go_library(
     name = "finder",
     srcs = [
         "finder.go",
+        "regexEngine.go",
         "substringEngine.go",
     ],
     importpath = "github.com/pedroegsilva/gofindthem/finder",
