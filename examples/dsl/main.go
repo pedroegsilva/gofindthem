@@ -10,7 +10,7 @@ import (
 
 func main() {
 	caseSensitive := false
-	p := dsl.NewParser(strings.NewReader(`"lorem ipsum" AND ("dolor" or "accumsan")`), caseSensitive)
+	p := dsl.NewParser(strings.NewReader(`INORD("foo" and "bar" and ("dolor" or "accumsan"))`), caseSensitive)
 	expression, err := p.Parse()
 	if err != nil {
 		log.Fatal(err)
@@ -22,9 +22,17 @@ func main() {
 	fmt.Printf("pretty format:\n%s\n", expression.PrettyFormat())
 
 	matches := map[string]dsl.PatternResult{
-		"lorem ipsum": dsl.PatternResult{
+		"foo": dsl.PatternResult{
 			Val:            true,
-			SortedMatchPos: []int{1, 3, 5},
+			SortedMatchPos: []int{0, 2, 5},
+		},
+		"bar": dsl.PatternResult{
+			Val:            true,
+			SortedMatchPos: []int{3},
+		},
+		"dolor": dsl.PatternResult{
+			Val:            true,
+			SortedMatchPos: []int{1, 7},
 		},
 	}
 
@@ -44,7 +52,6 @@ func main() {
 	// should return an error
 	_, err = expression.Solve(matches, true)
 	if err != nil {
-
 		log.Fatal(err)
 	}
 }

@@ -18,6 +18,7 @@ type Parser struct {
 	keywords     map[string]struct{}
 	parCount     int
 	casesesitive bool
+	inord        bool
 }
 
 // NewParser returns a new instance of Parser.
@@ -46,7 +47,7 @@ func (p *Parser) Parse() (expr *Expression, err error) {
 // parse parses the expression and returns the root node
 // of the parsed expression.
 func (p *Parser) parse() (*Expression, error) {
-	exp := &Expression{}
+	exp := &Expression{Inord: p.inord}
 	for {
 		tok, lit, err := p.scanIgnoreWhitespace()
 		if err != nil {
@@ -54,14 +55,9 @@ func (p *Parser) parse() (*Expression, error) {
 		}
 		switch tok {
 		case OPPAR:
-			parlvl := p.parCount
-			p.parCount++
-			newExp, err := p.parse()
+			newExp, err := p.handleOpenPar()
 			if err != nil {
 				return exp, err
-			}
-			if p.parCount != parlvl {
-				return exp, fmt.Errorf("invalid expression: Unexpected '('")
 			}
 
 			if exp.LExpr == nil {
@@ -77,6 +73,7 @@ func (p *Parser) parse() (*Expression, error) {
 			keyExp := &Expression{
 				Type:    UNIT_EXPR,
 				Literal: lit,
+				Inord:   p.inord,
 			}
 			if exp.LExpr == nil {
 				exp.LExpr = keyExp
@@ -97,7 +94,11 @@ func (p *Parser) parse() (*Expression, error) {
 			if err != nil {
 				return exp, err
 			}
+
 		case NOT:
+			if p.inord {
+				return exp, fmt.Errorf("invalid expression: INORD operator must not contain NOT operator")
+			}
 			nextTok, nextLit, err := p.scanIgnoreWhitespace()
 			if err != nil {
 				return exp, err
@@ -119,8 +120,7 @@ func (p *Parser) parse() (*Expression, error) {
 				p.keywords[nextLit] = struct{}{}
 
 			case OPPAR:
-				p.unscan()
-				newExp, err := p.parse()
+				newExp, err := p.handleOpenPar()
 				if err != nil {
 					return exp, err
 				}
@@ -133,6 +133,39 @@ func (p *Parser) parse() (*Expression, error) {
 				exp.LExpr = notExp
 			} else {
 				exp.RExpr = notExp
+			}
+
+		case INORD:
+			if p.inord {
+				return exp, fmt.Errorf("invalid expression: INORD operator must not contain INORD operator")
+			}
+
+			nextTok, _, err := p.scanIgnoreWhitespace()
+			if err != nil {
+				return exp, err
+			}
+
+			inordExp := &Expression{
+				Type: INORD_EXPR,
+			}
+
+			if nextTok != OPPAR {
+				return exp, fmt.Errorf("invalid expression: Unexpected token '%s' after INORD", nextTok.getName())
+			}
+
+			p.inord = true
+			newExp, err := p.handleOpenPar()
+			if err != nil {
+				return exp, err
+			}
+
+			p.inord = false
+			inordExp.RExpr = newExp
+
+			if exp.LExpr == nil {
+				exp.LExpr = inordExp
+			} else {
+				exp.RExpr = inordExp
 			}
 
 		case CLPAR:
@@ -159,7 +192,6 @@ func (p *Parser) parse() (*Expression, error) {
 					return nil, fmt.Errorf("invalid expression: incomplete expression %s", finalExp.Type.GetName())
 				}
 			}
-
 			return finalExp, nil
 
 		default:
@@ -179,23 +211,25 @@ func (p *Parser) handleDualOp(exp *Expression, expType ExprType) (*Expression, e
 		return exp, nil
 	}
 
+	exp = &Expression{
+		Type:  expType,
+		LExpr: exp,
+		Inord: p.inord,
+	}
+
 	nextTok, _, err := p.scanIgnoreWhitespace()
 	if err != nil {
 		return exp, err
 	}
 
-	exp = &Expression{
-		Type:  expType,
-		LExpr: exp,
-	}
-
-	p.unscan()
 	if nextTok == OPPAR {
-		newExp, err := p.parse()
+		newExp, err := p.handleOpenPar()
 		if err != nil {
 			return exp, err
 		}
 		exp.RExpr = newExp
+	} else {
+		p.unscan()
 	}
 
 	return exp, nil
@@ -236,4 +270,17 @@ func (p *Parser) scanIgnoreWhitespace() (tok Token, lit string, err error) {
 		tok, lit, err = p.scan()
 	}
 	return
+}
+
+func (p *Parser) handleOpenPar() (*Expression, error) {
+	parlvl := p.parCount
+	p.parCount++
+	newExp, err := p.parse()
+	if err != nil {
+		return newExp, err
+	}
+	if p.parCount != parlvl {
+		return newExp, fmt.Errorf("invalid expression: Unexpected '('")
+	}
+	return newExp, nil
 }

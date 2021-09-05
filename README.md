@@ -41,7 +41,7 @@ But any other library can be used as long as it implements the `SubstringEngine`
 	findthem := finder.NewFinder(subEng, caseSensitive)
 ```
 
-Them you need to add the expressions that need to be solved.
+Then you need to add the expressions that need to be solved.
 ```go
 	if err := findthem.AddExpression(`"Lorem" and "ipsum"`); err != nil {
 		log.Fatal(err)
@@ -56,6 +56,10 @@ Them you need to add the expressions that need to be solved.
 	}
 
 	if err := findthem.AddExpression(`"purus.\nSuspendisse"`); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := findthem.AddExpression(`inord("Lorem" and "FOO")`); err != nil {
 		log.Fatal(err)
 	}
 ```
@@ -82,9 +86,11 @@ First you need to create the parser object.
 The parser needs a reader with the expression that will be parsed and if it will be case sensitive.
 ```go
     caseSensitive := false
-	p := dsl.NewParser(strings.NewReader(`"lorem ipsum" AND ("dolor" or "accumsan")`), caseSensitive)
+	p := dsl.NewParser(strings.NewReader(`INORD("foo" and "bar" and ("dolor" or "accumsan"))`), caseSensitive)
 ```
-Them you can parse the expression
+
+Then you can parse the expression
+
 ```go 
 	expression, err := p.Parse()
 	if err != nil {
@@ -107,10 +113,18 @@ There are two ways to solve the expression.
 
 Recursively:
 ```go 
-    matches := map[string]dsl.PatternResult{
-		"lorem ipsum": dsl.PatternResult{
+	matches := map[string]dsl.PatternResult{
+		"foo": dsl.PatternResult{
 			Val:            true,
-			SortedMatchPos: []int{1, 3, 5},
+			SortedMatchPos: []int{0, 2, 5},
+		},
+		"bar": dsl.PatternResult{
+			Val:            true,
+			SortedMatchPos: []int{3},
+		},
+		"dolor": dsl.PatternResult{
+			Val:            true,
+			SortedMatchPos: []int{1, 7},
 		},
 	}
 

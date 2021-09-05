@@ -12,8 +12,8 @@ func main() {
 		`Lorem ipsum dolor sit amet, consectetur adipiscing elit.
 Curabitur porta lobortis nulla volutpat sagittis. 
 Nulla ac sapien sodales, pulvinar elit ut, lobortis purus.
-Suspendisse id luctus quam.`,
-		`Lorem ipsum Nullam non purus eu leo accumsan cursus a quis erat. 
+Suspendisse id luctus quam FOO.`,
+		`FOO Lorem ipsum Nullam non purus eu leo accumsan cursus a quis erat. 
 Etiam dictum enim eu commodo semper.
 Mauris feugiat vitae eros et facilisis.
 Donec facilisis mattis dignissim.`,
@@ -36,6 +36,10 @@ Donec facilisis mattis dignissim.`,
 	}
 
 	if err := findthem.AddExpression(`"purus.\nSuspendisse"`); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := findthem.AddExpression(`inord("Lorem" and "FOO")`); err != nil {
 		log.Fatal(err)
 	}
 
