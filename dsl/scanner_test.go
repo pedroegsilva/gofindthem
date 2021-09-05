@@ -22,7 +22,7 @@ func TestScanner(t *testing.T) {
 		message  string
 	}{
 		{
-			expStr: `and   or   not  "keyword 1"  (   )`,
+			expStr: `and   or   not  "keyword 1"  (   ) inord`,
 			expected: []expectedAtScan{
 				expectedAtScan{Tok: AND, Lit: "and", Err: nil},
 				expectedAtScan{Tok: WS, Lit: "   ", Err: nil},
@@ -35,6 +35,8 @@ func TestScanner(t *testing.T) {
 				expectedAtScan{Tok: OPPAR, Lit: "(", Err: nil},
 				expectedAtScan{Tok: WS, Lit: "   ", Err: nil},
 				expectedAtScan{Tok: CLPAR, Lit: ")", Err: nil},
+				expectedAtScan{Tok: WS, Lit: " ", Err: nil},
+				expectedAtScan{Tok: INORD, Lit: "inord", Err: nil},
 				expectedAtScan{Tok: EOF, Lit: "", Err: nil},
 			},
 			message: "all tokens",
@@ -45,7 +47,7 @@ func TestScanner(t *testing.T) {
 				expectedAtScan{
 					Tok: ILLEGAL,
 					Lit: "",
-					Err: fmt.Errorf("fail to scan operator: unexpected operator 'invalidOne' found"),
+					Err: fmt.Errorf("failed to scan operator: unexpected operator 'invalidOne' found"),
 				},
 			},
 			message: "invalid operator token",

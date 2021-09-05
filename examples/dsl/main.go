@@ -36,7 +36,7 @@ func main() {
 		},
 	}
 
-	responseRecursive, _, err := expression.Solve(matches, false)
+	responseRecursive, err := expression.Solve(matches, false)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -50,7 +50,7 @@ func main() {
 	fmt.Println("iterative eval ", responseIter)
 
 	// should return an error
-	_, _, err = expression.Solve(matches, true)
+	_, err = expression.Solve(matches, true)
 	if err != nil {
 		log.Fatal(err)
 	}

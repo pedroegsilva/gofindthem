@@ -188,6 +188,38 @@ func TestParser(t *testing.T) {
 			message:     "multiple function with parentheses",
 		},
 		{
+			expStr: `not("2" or "3") and "1"`,
+			expectedExp: Expression{
+				Type: AND_EXPR,
+				LExpr: &Expression{
+					Type: NOT_EXPR,
+					RExpr: &Expression{
+						Type: OR_EXPR,
+						LExpr: &Expression{
+							Type:    UNIT_EXPR,
+							Literal: "2",
+						},
+						RExpr: &Expression{
+							Type:    UNIT_EXPR,
+							Literal: "3",
+						},
+					},
+				},
+				RExpr: &Expression{
+					Type:    UNIT_EXPR,
+					Literal: "1",
+				},
+			},
+			expectedKeywords: map[string]struct{}{
+				"1": struct{}{},
+				"2": struct{}{},
+				"3": struct{}{},
+			},
+			expectedErr: nil,
+			caseSense:   true,
+			message:     "not with parentheses",
+		},
+		{
 			expStr:           ``,
 			expectedExp:      Expression{},
 			expectedKeywords: map[string]struct{}{},
@@ -271,6 +303,65 @@ func TestParser(t *testing.T) {
 			expectedErr: nil,
 			caseSense:   false,
 			message:     "case insensitive test",
+		},
+		{
+			expStr: `INORD("2" or "3") and "1"`,
+			expectedExp: Expression{
+				Type: AND_EXPR,
+				LExpr: &Expression{
+					Type: INORD_EXPR,
+					RExpr: &Expression{
+						Type:  OR_EXPR,
+						Inord: true,
+						LExpr: &Expression{
+							Type:    UNIT_EXPR,
+							Inord:   true,
+							Literal: "2",
+						},
+						RExpr: &Expression{
+							Type:    UNIT_EXPR,
+							Inord:   true,
+							Literal: "3",
+						},
+					},
+				},
+				RExpr: &Expression{
+					Type:    UNIT_EXPR,
+					Literal: "1",
+				},
+			},
+			expectedKeywords: map[string]struct{}{
+				"1": struct{}{},
+				"2": struct{}{},
+				"3": struct{}{},
+			},
+			expectedErr: nil,
+			caseSense:   true,
+			message:     "inord operator",
+		},
+		{
+			expStr:           `"1" and INORD("2" or not "3")`,
+			expectedExp:      Expression{},
+			expectedKeywords: map[string]struct{}{},
+			expectedErr:      fmt.Errorf("invalid expression: INORD operator must not contain NOT operator"),
+			caseSense:        true,
+			message:          "inord operator fail not",
+		},
+		{
+			expStr:           `"1" and INORD( inord("2" or not "3") )`,
+			expectedExp:      Expression{},
+			expectedKeywords: map[string]struct{}{},
+			expectedErr:      fmt.Errorf("invalid expression: INORD operator must not contain INORD operator"),
+			caseSense:        true,
+			message:          "inord operator fail inord on a inord",
+		},
+		{
+			expStr:           `"1" and INORD "2" or not "3"`,
+			expectedExp:      Expression{},
+			expectedKeywords: map[string]struct{}{},
+			expectedErr:      fmt.Errorf("invalid expression: Unexpected token 'KEYWORD' after INORD"),
+			caseSense:        true,
+			message:          "inord operator fail inord without parentheses",
 		},
 	}
 

@@ -11,10 +11,10 @@ func TestSolver(t *testing.T) {
 	assert := assert.New(t)
 	for _, tc := range solverTestCases {
 		exp, err := NewParser(strings.NewReader(tc.expStr), true).Parse()
-		assert.Nil(err, tc.message+" iter")
+		assert.Nil(err, tc.message+" recursive")
 		respInt, err := exp.Solve(tc.solverMap, false)
-		assert.Nil(err, tc.message+" iter")
-		assert.Equal(tc.expectedResp, respInt, tc.message+" iter")
+		assert.Nil(err, tc.message+" recursive")
+		assert.Equal(tc.expectedResp, respInt, tc.message+" recursive")
 	}
 }
 
@@ -213,12 +213,13 @@ var solverTestCases = []struct {
 		message:      "not multi false",
 	},
 	{
-		expStr: `not ("1" or "2")`,
+		expStr: `not ("1" or "2") or "3"`,
 		solverMap: map[string]PatternResult{
 			"1": PatternResult{Val: true},
+			"3": PatternResult{Val: true},
 		},
-		expectedResp: false,
-		message:      "not multi false 2",
+		expectedResp: true,
+		message:      "not multi true",
 	},
 	{
 		expStr: `"1" and not "2" or "3"`,
@@ -247,10 +248,9 @@ var solverTestCases = []struct {
 		expectedResp: true,
 		message:      "not multi true 3",
 	},
-
 	// parentheses tests
 	{
-		expStr: `("1" or "2") and not ("1" and "2")`,
+		expStr: `not ("1" and "2") and ("1" or "2")`,
 		solverMap: map[string]PatternResult{
 			"1": PatternResult{Val: true},
 			"2": PatternResult{Val: true},
@@ -265,7 +265,7 @@ var solverTestCases = []struct {
 		message:      "parentheses xor 2",
 	},
 	{
-		expStr: `("1" or "2") and not ("1" and "2")`,
+		expStr: `not ("1" and "2") and ("1" or "2")`,
 		solverMap: map[string]PatternResult{
 			"2": PatternResult{Val: true},
 		},
@@ -281,9 +281,13 @@ var solverTestCases = []struct {
 		message:      "parentheses xor 4",
 	},
 	{
-		expStr:       `(("1" and "2" and "3") or ("4" and not "5")) and ("6" or "7") and "8"`,
-		solverMap:    map[string]PatternResult{},
-		expectedResp: false,
+		expStr: `(("1" and "2" and "3") or ("4" and not "5")) and ("6" or "7") and "8"`,
+		solverMap: map[string]PatternResult{
+			"4": PatternResult{Val: true},
+			"6": PatternResult{Val: true},
+			"8": PatternResult{Val: true},
+		},
+		expectedResp: true,
 		message:      "parentheses 1",
 	},
 	{
@@ -291,30 +295,140 @@ var solverTestCases = []struct {
 		solverMap: map[string]PatternResult{
 			"4": PatternResult{Val: true},
 			"6": PatternResult{Val: true},
-			"8": PatternResult{Val: true},
 		},
-		expectedResp: true,
+		expectedResp: false,
 		message:      "parentheses 2",
 	},
 	{
-		expStr: `(("1" and "2" and "3") or ("4" and not "5")) and ("6" or "7") and "8"`,
-		solverMap: map[string]PatternResult{
-			"4": PatternResult{Val: true},
-			"6": PatternResult{Val: true},
-		},
-		expectedResp: false,
-		message:      "parentheses 3",
-	},
-	{
-		expStr: `(("1" and "2" and "3") or ("4" and not "5")) and ("6" or "7") and "8"`,
+		expStr: `(not ("1" and "2" and "3") or ("4" and not "5"))`,
 		solverMap: map[string]PatternResult{
 			"1": PatternResult{Val: true},
 			"2": PatternResult{Val: true},
 			"3": PatternResult{Val: true},
-			"6": PatternResult{Val: true},
-			"8": PatternResult{Val: true},
+			"4": PatternResult{Val: true},
 		},
 		expectedResp: true,
-		message:      "parentheses 4",
+		message:      "parentheses 3",
+	},
+	// inord tests
+	{
+		expStr: `inord("a" and "b" and "c")`,
+		// acabXaXcb
+		solverMap: map[string]PatternResult{
+			"a": PatternResult{
+				Val:            true,
+				SortedMatchPos: []int{0, 2, 5},
+			},
+			"b": PatternResult{
+				Val:            true,
+				SortedMatchPos: []int{3, 8},
+			},
+			"c": PatternResult{
+				Val:            true,
+				SortedMatchPos: []int{1, 7},
+			},
+		},
+		expectedResp: true,
+		message:      "inord true",
+	},
+	{
+		expStr: `inord("a" and ("b" or "c"))`,
+		// cbac
+		solverMap: map[string]PatternResult{
+			"a": PatternResult{
+				Val:            true,
+				SortedMatchPos: []int{2},
+			},
+			"b": PatternResult{
+				Val:            true,
+				SortedMatchPos: []int{1},
+			},
+			"c": PatternResult{
+				Val:            true,
+				SortedMatchPos: []int{0, 3},
+			},
+		},
+		expectedResp: true,
+		message:      "inord with or",
+	},
+	{
+		expStr: `inord("a" and "b" and "c")`,
+		// bacb
+		solverMap: map[string]PatternResult{
+			"a": PatternResult{
+				Val:            true,
+				SortedMatchPos: []int{1},
+			},
+			"b": PatternResult{
+				Val:            true,
+				SortedMatchPos: []int{0, 3},
+			},
+			"c": PatternResult{
+				Val:            true,
+				SortedMatchPos: []int{2},
+			},
+		},
+		expectedResp: false,
+		message:      "inord false 1",
+	},
+	{
+		expStr: `inord("a" and "b" and "c")`,
+		// bcab
+		solverMap: map[string]PatternResult{
+			"a": PatternResult{
+				Val:            true,
+				SortedMatchPos: []int{2},
+			},
+			"b": PatternResult{
+				Val:            true,
+				SortedMatchPos: []int{0, 3},
+			},
+			"c": PatternResult{
+				Val:            true,
+				SortedMatchPos: []int{1},
+			},
+		},
+		expectedResp: false,
+		message:      "inord false 2",
+	},
+	{
+		expStr: `inord(("b" or "c") and ("a" or "b"))`,
+		// bcab
+		solverMap: map[string]PatternResult{
+			"a": PatternResult{
+				Val:            true,
+				SortedMatchPos: []int{2},
+			},
+			"b": PatternResult{
+				Val:            true,
+				SortedMatchPos: []int{0, 3},
+			},
+			"c": PatternResult{
+				Val:            true,
+				SortedMatchPos: []int{1},
+			},
+		},
+		expectedResp: true,
+		message:      "inord multiple or with repeated key",
+	},
+	{
+		expStr: `inord("b" and "c") and inord("a" and "b")`,
+		// bcab
+		solverMap: map[string]PatternResult{
+			"a": PatternResult{
+				Val:            true,
+				SortedMatchPos: []int{2},
+			},
+			"b": PatternResult{
+				Val:            true,
+				SortedMatchPos: []int{0, 3},
+			},
+			"c": PatternResult{
+				Val:            true,
+				SortedMatchPos: []int{1},
+			},
+		},
+		expectedResp: true,
+		message:      "multiple inord",
 	},
 }

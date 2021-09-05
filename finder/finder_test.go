@@ -119,7 +119,7 @@ func TestAddExpression(t *testing.T) {
 				map[string]struct{}{
 					"A": struct{}{},
 				},
-				[]error{nil, fmt.Errorf("fail to scan operator: unexpected operator 'invalid' found")},
+				[]error{nil, fmt.Errorf("failed to scan operator: unexpected operator 'invalid' found")},
 			},
 			"adding invalid expression",
 		},

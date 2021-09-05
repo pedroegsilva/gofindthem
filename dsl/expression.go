@@ -68,6 +68,15 @@ func (exp *Expression) GetTypeName() string {
 func (exp *Expression) Solve(
 	patterResByKeyword map[string]PatternResult,
 	completeMap bool,
+) (bool, error) {
+	eval, _, err := exp.solve(patterResByKeyword, completeMap)
+	return eval, err
+}
+
+//solve implements Solve
+func (exp *Expression) solve(
+	patterResByKeyword map[string]PatternResult,
+	completeMap bool,
 ) (bool, []int, error) {
 	switch exp.Type {
 	case UNIT_EXPR:
@@ -90,22 +99,19 @@ func (exp *Expression) Solve(
 		if exp.LExpr == nil || exp.RExpr == nil {
 			return false, pos, fmt.Errorf("And statment do not have rigth or left expression: %v", exp)
 		}
-		lval, lpos, err := exp.LExpr.Solve(patterResByKeyword, completeMap)
+		lval, lpos, err := exp.LExpr.solve(patterResByKeyword, completeMap)
 		if err != nil {
 			return false, pos, err
 		}
-		rval, rpos, err := exp.RExpr.Solve(patterResByKeyword, completeMap)
+		rval, rpos, err := exp.RExpr.solve(patterResByKeyword, completeMap)
 		if err != nil {
 			return false, pos, err
 		}
 		exp.Val = lval && rval
 		if exp.Inord && len(lpos) > 0 && len(rpos) > 0 {
-			ridx := len(rpos) - 1
-			if ridx >= 0 {
-				idx := getGreatestLowerIndex(lpos, rpos[ridx])
-				if idx >= 0 {
-					pos = lpos[:idx+1]
-				}
+			idx := getLowestGreaterIndex(rpos, lpos[0])
+			if idx >= 0 {
+				pos = rpos[idx:]
 			}
 		}
 
@@ -115,11 +121,11 @@ func (exp *Expression) Solve(
 		if exp.LExpr == nil || exp.RExpr == nil {
 			return false, pos, fmt.Errorf("OR statment do not have rigth or left expression: %v", exp)
 		}
-		lval, lpos, err := exp.LExpr.Solve(patterResByKeyword, completeMap)
+		lval, lpos, err := exp.LExpr.solve(patterResByKeyword, completeMap)
 		if err != nil {
 			return false, pos, err
 		}
-		rval, rpos, err := exp.RExpr.Solve(patterResByKeyword, completeMap)
+		rval, rpos, err := exp.RExpr.solve(patterResByKeyword, completeMap)
 		if err != nil {
 			return false, pos, err
 		}
@@ -134,7 +140,7 @@ func (exp *Expression) Solve(
 		if exp.RExpr == nil {
 			return false, pos, fmt.Errorf("NOT statement do not have expression: %v", exp)
 		}
-		rval, _, err := exp.RExpr.Solve(patterResByKeyword, completeMap)
+		rval, _, err := exp.RExpr.solve(patterResByKeyword, completeMap)
 		if err != nil {
 			return false, pos, err
 		}
@@ -145,7 +151,7 @@ func (exp *Expression) Solve(
 		if exp.RExpr == nil {
 			return false, pos, fmt.Errorf("INORD statement do not have expression: %v", exp)
 		}
-		rval, rpos, err := exp.RExpr.Solve(patterResByKeyword, completeMap)
+		rval, rpos, err := exp.RExpr.solve(patterResByKeyword, completeMap)
 		if err != nil {
 			return false, pos, err
 		}
@@ -212,6 +218,7 @@ func (ps *PositionStack) pop() []int {
 // document.
 func (so SolverOrder) Solve(patterResByKeyword map[string]PatternResult, completeMap bool) (bool, error) {
 	posStack := &PositionStack{}
+	// fmt.Println("so", so[0].PrettyFormat())
 	for i := len(so) - 1; i >= 0; i-- {
 		exp := so[i]
 		if exp == nil {
@@ -239,13 +246,12 @@ func (so SolverOrder) Solve(patterResByKeyword map[string]PatternResult, complet
 			if exp.Inord {
 				lpos := posStack.pop()
 				rpos := posStack.pop()
+				// fmt.Println("AND_EXPR lpos", lpos)
+				// fmt.Println("AND_EXPR rpos", rpos)
 				if exp.Inord && len(lpos) > 0 && len(rpos) > 0 {
-					ridx := len(rpos) - 1
-					if ridx >= 0 {
-						idx := getGreatestLowerIndex(lpos, rpos[ridx])
-						if idx >= 0 {
-							posStack.add(lpos[:idx+1])
-						}
+					idx := getLowestGreaterIndex(rpos, lpos[0])
+					if idx >= 0 {
+						posStack.add(rpos[idx:])
 					}
 				}
 			}
@@ -258,6 +264,8 @@ func (so SolverOrder) Solve(patterResByKeyword map[string]PatternResult, complet
 			if exp.Inord {
 				lpos := posStack.pop()
 				rpos := posStack.pop()
+				// fmt.Println("OR_EXPR lpos", lpos)
+				// fmt.Println("OR_EXPR rpos", rpos)
 				posStack.add(mergeArraysSorted(lpos, rpos))
 			}
 
@@ -307,22 +315,25 @@ func createSolverOrder(exp *Expression, arr *SolverOrder) {
 	}
 }
 
-func getGreatestLowerIndex(positions []int, value int) int {
+// getGreatestLowerIndex uses binary search to find the
+// index of the greatest element that is lower then 'value'
+func getLowestGreaterIndex(positions []int, value int) int {
 	left := 0
 	right := len(positions) - 1
-	gtLowI := -1
-	for left < right {
+	lwGrtI := -1
+	for left <= right {
 		half := (left + right) >> 1 // divide by 2
 		if positions[half] > value {
+			lwGrtI = half
 			right = half - 1
 		} else {
-			gtLowI = half
 			left = half + 1
 		}
 	}
-	return gtLowI
+	return lwGrtI
 }
 
+// mergeArraysSorted merges two sorted arrays into a new sorted array
 func mergeArraysSorted(lArr []int, rArr []int) []int {
 	leftIdx := 0
 	rightIdx := 0
@@ -337,22 +348,23 @@ func mergeArraysSorted(lArr []int, rArr []int) []int {
 	sumSize := lSize + rSize
 	outArr := make([]int, sumSize)
 	count := 0
+
 	for count < sumSize {
-		if leftIdx == lSize {
+		switch {
+		case leftIdx == lSize:
+			outArr[count] = rArr[rightIdx]
+			rightIdx++
+		case rightIdx == rSize:
+			outArr[count] = lArr[leftIdx]
+			leftIdx++
+		case lArr[leftIdx] < rArr[rightIdx]:
+			outArr[count] = lArr[leftIdx]
+			leftIdx++
+		default:
 			outArr[count] = rArr[rightIdx]
 			rightIdx++
 		}
-		if rightIdx == rSize {
-			outArr[count] = lArr[leftIdx]
-			leftIdx++
-		}
-		if lArr[leftIdx] < rArr[rightIdx] {
-			outArr[count] = lArr[leftIdx]
-			leftIdx++
-		} else {
-			outArr[count] = rArr[rightIdx]
-			rightIdx++
-		}
+		count++
 	}
 	return outArr
 }

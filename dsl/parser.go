@@ -55,14 +55,9 @@ func (p *Parser) parse() (*Expression, error) {
 		}
 		switch tok {
 		case OPPAR:
-			parlvl := p.parCount
-			p.parCount++
-			newExp, err := p.parse()
+			newExp, err := p.handleOpenPar()
 			if err != nil {
 				return exp, err
-			}
-			if p.parCount != parlvl {
-				return exp, fmt.Errorf("invalid expression: Unexpected '('")
 			}
 
 			if exp.LExpr == nil {
@@ -125,8 +120,7 @@ func (p *Parser) parse() (*Expression, error) {
 				p.keywords[nextLit] = struct{}{}
 
 			case OPPAR:
-				p.unscan()
-				newExp, err := p.parse()
+				newExp, err := p.handleOpenPar()
 				if err != nil {
 					return exp, err
 				}
@@ -158,9 +152,9 @@ func (p *Parser) parse() (*Expression, error) {
 			if nextTok != OPPAR {
 				return exp, fmt.Errorf("invalid expression: Unexpected token '%s' after INORD", nextTok.getName())
 			}
-			p.unscan()
+
 			p.inord = true
-			newExp, err := p.parse()
+			newExp, err := p.handleOpenPar()
 			if err != nil {
 				return exp, err
 			}
@@ -198,7 +192,6 @@ func (p *Parser) parse() (*Expression, error) {
 					return nil, fmt.Errorf("invalid expression: incomplete expression %s", finalExp.Type.GetName())
 				}
 			}
-
 			return finalExp, nil
 
 		default:
@@ -218,24 +211,25 @@ func (p *Parser) handleDualOp(exp *Expression, expType ExprType) (*Expression, e
 		return exp, nil
 	}
 
-	nextTok, _, err := p.scanIgnoreWhitespace()
-	if err != nil {
-		return exp, err
-	}
-
 	exp = &Expression{
 		Type:  expType,
 		LExpr: exp,
 		Inord: p.inord,
 	}
 
-	p.unscan()
+	nextTok, _, err := p.scanIgnoreWhitespace()
+	if err != nil {
+		return exp, err
+	}
+
 	if nextTok == OPPAR {
-		newExp, err := p.parse()
+		newExp, err := p.handleOpenPar()
 		if err != nil {
 			return exp, err
 		}
 		exp.RExpr = newExp
+	} else {
+		p.unscan()
 	}
 
 	return exp, nil
@@ -276,4 +270,17 @@ func (p *Parser) scanIgnoreWhitespace() (tok Token, lit string, err error) {
 		tok, lit, err = p.scan()
 	}
 	return
+}
+
+func (p *Parser) handleOpenPar() (*Expression, error) {
+	parlvl := p.parCount
+	p.parCount++
+	newExp, err := p.parse()
+	if err != nil {
+		return newExp, err
+	}
+	if p.parCount != parlvl {
+		return newExp, fmt.Errorf("invalid expression: Unexpected '('")
+	}
+	return newExp, nil
 }
