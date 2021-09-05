@@ -82,7 +82,6 @@ func (finder *Finder) ProcessText(text string) (evalResp map[string]bool, err er
 
 	solverMap := make(map[string]dsl.PatternResult)
 
-	var keyMaches chan *Match
 	if len(finder.keywords) > 0 {
 		if !finder.updatedSubMachine {
 			err = finder.subEng.BuildEngine(finder.keywords, finder.caseSensitive)
@@ -92,9 +91,9 @@ func (finder *Finder) ProcessText(text string) (evalResp map[string]bool, err er
 			finder.updatedSubMachine = true
 		}
 
-		keyMaches, err = finder.subEng.FindSubstrings(text)
+		keyMaches, err := finder.subEng.FindSubstrings(text)
 		if err != nil {
-			return
+			return nil, err
 		}
 		finder.addMatchesToSolverMap(keyMaches, solverMap)
 	}
@@ -108,11 +107,11 @@ func (finder *Finder) ProcessText(text string) (evalResp map[string]bool, err er
 			finder.updatedRgxMachine = true
 		}
 
-		keyMaches, err = finder.rgxEng.FindRegexes(text)
+		rgxMaches, err := finder.rgxEng.FindRegexes(text)
 		if err != nil {
-			return
+			return nil, err
 		}
-		finder.addMatchesToSolverMap(keyMaches, solverMap)
+		finder.addMatchesToSolverMap(rgxMaches, solverMap)
 	}
 
 	evalResp, err = finder.solveExpressions(solverMap)

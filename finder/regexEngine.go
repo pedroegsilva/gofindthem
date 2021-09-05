@@ -49,3 +49,18 @@ func (re *RegexpEngine) FindRegexes(text string) (matches chan *Match, err error
 	}()
 	return
 }
+
+type EmptyRgxEngine struct {
+}
+
+// BuildEngine implements BuildEngine with an nop
+func (pdm *EmptyRgxEngine) BuildEngine(regexes map[string]struct{}, caseSensitive bool) (err error) {
+	return
+}
+
+// BuildEngine implements FindSubstrings with an nop
+func (pdm *EmptyRgxEngine) FindRegexes(text string) (matches chan *Match, err error) {
+	matches = make(chan *Match, 10)
+	defer close(matches)
+	return
+}
