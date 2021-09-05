@@ -18,6 +18,7 @@ type Parser struct {
 	keywords     map[string]struct{}
 	parCount     int
 	casesesitive bool
+	inord        bool
 }
 
 // NewParser returns a new instance of Parser.
@@ -46,7 +47,7 @@ func (p *Parser) Parse() (expr *Expression, err error) {
 // parse parses the expression and returns the root node
 // of the parsed expression.
 func (p *Parser) parse() (*Expression, error) {
-	exp := &Expression{}
+	exp := &Expression{Inord: p.inord}
 	for {
 		tok, lit, err := p.scanIgnoreWhitespace()
 		if err != nil {
@@ -77,6 +78,7 @@ func (p *Parser) parse() (*Expression, error) {
 			keyExp := &Expression{
 				Type:    UNIT_EXPR,
 				Literal: lit,
+				Inord:   p.inord,
 			}
 			if exp.LExpr == nil {
 				exp.LExpr = keyExp
@@ -97,7 +99,11 @@ func (p *Parser) parse() (*Expression, error) {
 			if err != nil {
 				return exp, err
 			}
+
 		case NOT:
+			if p.inord {
+				return exp, fmt.Errorf("invalid expression: INORD operator must not contain NOT operator")
+			}
 			nextTok, nextLit, err := p.scanIgnoreWhitespace()
 			if err != nil {
 				return exp, err
@@ -133,6 +139,39 @@ func (p *Parser) parse() (*Expression, error) {
 				exp.LExpr = notExp
 			} else {
 				exp.RExpr = notExp
+			}
+
+		case INORD:
+			if p.inord {
+				return exp, fmt.Errorf("invalid expression: INORD operator must not contain INORD operator")
+			}
+
+			nextTok, _, err := p.scanIgnoreWhitespace()
+			if err != nil {
+				return exp, err
+			}
+
+			inordExp := &Expression{
+				Type: INORD_EXPR,
+			}
+
+			if nextTok != OPPAR {
+				return exp, fmt.Errorf("invalid expression: Unexpected token '%s' after INORD", nextTok.getName())
+			}
+			p.unscan()
+			p.inord = true
+			newExp, err := p.parse()
+			if err != nil {
+				return exp, err
+			}
+
+			p.inord = false
+			inordExp.RExpr = newExp
+
+			if exp.LExpr == nil {
+				exp.LExpr = inordExp
+			} else {
+				exp.RExpr = inordExp
 			}
 
 		case CLPAR:
@@ -187,6 +226,7 @@ func (p *Parser) handleDualOp(exp *Expression, expType ExprType) (*Expression, e
 	exp = &Expression{
 		Type:  expType,
 		LExpr: exp,
+		Inord: p.inord,
 	}
 
 	p.unscan()

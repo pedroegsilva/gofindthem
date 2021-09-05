@@ -41,7 +41,7 @@ But any other library can be used as long as it implements the `SubstringEngine`
 	findthem := finder.NewFinder(subEng, caseSensitive)
 ```
 
-Them you need to add the expressions that need to be solved.
+Then you need to add the expressions that need to be solved.
 ```go
 	if err := findthem.AddExpression(`"Lorem" and "ipsum"`); err != nil {
 		log.Fatal(err)
@@ -84,7 +84,9 @@ The parser needs a reader with the expression that will be parsed and if it will
     caseSensitive := false
 	p := dsl.NewParser(strings.NewReader(`"lorem ipsum" AND ("dolor" or "accumsan")`), caseSensitive)
 ```
-Them you can parse the expression
+
+Then you can parse the expression
+
 ```go 
 	expression, err := p.Parse()
 	if err != nil {

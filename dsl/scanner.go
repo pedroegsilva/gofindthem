@@ -26,9 +26,10 @@ const (
 	CLPAR     // )
 
 	// Operators
-	AND // 'and' or 'AND'
-	OR  // 'or' or 'OR'
-	NOT // 'not' or 'NOT'
+	AND   // 'and' or 'AND'
+	OR    // 'or' or 'OR'
+	NOT   // 'not' or 'NOT'
+	INORD // 'inord' or 'INORD'
 )
 
 // getName retuns a readable name for the Token
@@ -54,6 +55,8 @@ func (tok Token) getName() string {
 		return "OR"
 	case NOT:
 		return "NOT"
+	case INORD:
+		return "INORD"
 	default:
 		return "UNEXPECTED"
 	}
@@ -96,7 +99,7 @@ func (s *Scanner) Scan() (tok Token, lit string, err error) {
 		return EOF, "", nil
 	}
 
-	return ILLEGAL, "", fmt.Errorf(fmt.Sprintf("Illegal char was found %c", ch))
+	return ILLEGAL, "", fmt.Errorf("Illegal char was found %c", ch)
 }
 
 // scanWhitespace consumes the current rune and all contiguous whitespace.
@@ -126,7 +129,7 @@ func (s *Scanner) scanOperators() (tok Token, lit string, err error) {
 	// Create a buffer and read the current character into it.
 	ch := s.read()
 	if !isLetter(ch) {
-		return ILLEGAL, "", fmt.Errorf(fmt.Sprintf("fail to scan operator: expected letter but found %c", ch))
+		return ILLEGAL, "", fmt.Errorf("fail to scan operator: expected letter but found %c", ch)
 	}
 	var buf bytes.Buffer
 
@@ -155,20 +158,22 @@ func (s *Scanner) scanOperators() (tok Token, lit string, err error) {
 		tok = OR
 	case "NOT":
 		tok = NOT
+	case "INORD":
+		tok = INORD
 	default:
-		return ILLEGAL, "", fmt.Errorf(fmt.Sprintf("fail to scan operator: unexpected operator '%s' found", lit))
+		return ILLEGAL, "", fmt.Errorf("failed to scan operator: unexpected operator '%s' found", lit)
 	}
 
 	return
 }
 
 // scanKeyword scans the keyword and scape needed characters
-// If a invalid scape is used an erro will be returned and if EOF is found
-// before a '"' returns an error aswell.
+// If a invalid scape is used an error will be returned and if EOF is found
+// before a '"' returns an error as well.
 func (s *Scanner) scanKeyword() (tok Token, lit string, err error) {
 	ch := s.read()
 	if ch != '"' {
-		return ILLEGAL, "", fmt.Errorf(fmt.Sprintf("fail to scan keyword: expected \" but found %c", ch))
+		return ILLEGAL, "", fmt.Errorf("fail to scan keyword: expected \" but found %c", ch)
 	}
 	var buf bytes.Buffer
 
@@ -192,7 +197,7 @@ func (s *Scanner) scanKeyword() (tok Token, lit string, err error) {
 			case '"':
 				_, _ = buf.WriteRune(scapedCh)
 			default:
-				return ILLEGAL, "", fmt.Errorf(fmt.Sprintf("fail to scan keyword: invalid escaped char %c", scapedCh))
+				return ILLEGAL, "", fmt.Errorf("fail to scan keyword: invalid escaped char %c", scapedCh)
 			}
 		case '"':
 			endloop = true
