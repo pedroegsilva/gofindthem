@@ -109,7 +109,7 @@ func (exp *Expression) solve(
 		}
 		exp.Val = lval && rval
 		if exp.Inord && len(lpos) > 0 && len(rpos) > 0 {
-			idx := getLowestGreaterIndex(rpos, lpos[0])
+			idx := getLowestIdxGTVal(rpos, lpos[0])
 			if idx >= 0 {
 				pos = rpos[idx:]
 			}
@@ -194,13 +194,17 @@ func (exp *Expression) prettyFormat(lvl int) (pprint string) {
 // SolverOrder store the expressions Preorder
 type SolverOrder []*Expression
 
-type PositionStack [][]int
+// positionStack stack of []int used to solve inord operations
+// iteratively
+type positionStack [][]int
 
-func (ps *PositionStack) add(pos []int) {
+// add implements add for positionStack
+func (ps *positionStack) add(pos []int) {
 	*ps = append(*ps, pos)
 }
 
-func (ps *PositionStack) pop() []int {
+// pop implements pop for positionStack
+func (ps *positionStack) pop() []int {
 	var topPos []int
 	n := len(*ps) - 1
 	if n >= 0 {
@@ -217,7 +221,7 @@ func (ps *PositionStack) pop() []int {
 // If the incomplete map is used, missing keys will be considered as a no match on the
 // document.
 func (so SolverOrder) Solve(patterResByKeyword map[string]PatternResult, completeMap bool) (bool, error) {
-	posStack := &PositionStack{}
+	posStack := &positionStack{}
 	// fmt.Println("so", so[0].PrettyFormat())
 	for i := len(so) - 1; i >= 0; i-- {
 		exp := so[i]
@@ -249,7 +253,7 @@ func (so SolverOrder) Solve(patterResByKeyword map[string]PatternResult, complet
 				// fmt.Println("AND_EXPR lpos", lpos)
 				// fmt.Println("AND_EXPR rpos", rpos)
 				if exp.Inord && len(lpos) > 0 && len(rpos) > 0 {
-					idx := getLowestGreaterIndex(rpos, lpos[0])
+					idx := getLowestIdxGTVal(rpos, lpos[0])
 					if idx >= 0 {
 						posStack.add(rpos[idx:])
 					}
@@ -315,9 +319,9 @@ func createSolverOrder(exp *Expression, arr *SolverOrder) {
 	}
 }
 
-// getGreatestLowerIndex uses binary search to find the
-// index of the greatest element that is lower then 'value'
-func getLowestGreaterIndex(positions []int, value int) int {
+// getLowestIdxGTVal uses binary search to find the
+// index of the lowest element that is greater than 'value'
+func getLowestIdxGTVal(positions []int, value int) int {
 	left := 0
 	right := len(positions) - 1
 	lwGrtI := -1
@@ -337,10 +341,10 @@ func getLowestGreaterIndex(positions []int, value int) int {
 func mergeArraysSorted(lArr []int, rArr []int) []int {
 	leftIdx := 0
 	rightIdx := 0
-	if lArr == nil || len(lArr) == 0 {
+	if len(lArr) == 0 {
 		return rArr
 	}
-	if rArr == nil || len(rArr) == 0 {
+	if len(rArr) == 0 {
 		return lArr
 	}
 	lSize := len(lArr)
