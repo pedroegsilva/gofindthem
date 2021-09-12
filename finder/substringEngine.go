@@ -57,7 +57,8 @@ func (am *AnknownEngine) FindSubstrings(text string) (matches chan *Match, err e
 }
 
 // CloudflareEngine implements SubstringEngine using the
-// github.com/cloudflare/ahocorasick package
+// github.com/cloudflare/ahocorasick package. This engine
+// does not support the use of INORD operator
 type CloudflareEngine struct {
 	Matcher *cfahocorasick.Matcher
 	Dict    []string

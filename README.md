@@ -30,17 +30,20 @@ from which is heavily influenced by the [InfluxQL parser](https://github.com/inf
 There are 2 libraries on this repository, the DSL and the Finder.
 
 ### Finder
-First you need to create the Finder. The Finder needs a `SubstringEngine` (interface can be found at `/finder/substringEngine.go`) 
+The finder is used to manage multiple expressions. It will use the DSL to extract the terms and regexes from each expression and use them to process the text with the appropriated engine.
+
+You will need to create the Finder object. The Finder needs a `SubstringEngine` (interface can be found at `/finder/substringEngine.go`) and a `RegexEngine` (interface can be found at `/finder/regexEngine.go`)
 and if the search will be case sensitive or not.
-there are 3 implementations of `SubstringEngine` that uses the libraries from 
+There are 3 "implementations" of `SubstringEngine` that uses the libraries from 
 https://github.com/cloudflare/ahocorasick, 
 https://github.com/anknown/ahocorasick and 
-https://github.com/petar-dambovaliev/aho-corasick. 
-But any other library can be used as long as it implements the `SubstringEngine` interface.
+https://github.com/petar-dambovaliev/aho-corasick and a regexp implementation for the `RegexEngine`. 
+But any other library can be used as long as it "implements" the `SubstringEngine` or `RegexEngine` interface.
 ```go
-    subEng := &finder.PetarDambovalievEngine{}
+	subEng := &finder.PetarDambovalievEngine{}
+	rgxEng := &finder.RegexpEngine{}
 	caseSensitive := true
-	findthem := finder.NewFinder(subEng, caseSensitive)
+	findthem := finder.NewFinder(subEng, rgxEng, caseSensitive)
 ```
 
 Then you need to add the expressions that need to be solved.
