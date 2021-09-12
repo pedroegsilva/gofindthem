@@ -11,7 +11,7 @@ type RegexEngine interface {
 	BuildEngine(regexes map[string]struct{}, caseSensitive bool) (err error)
 	// FindRegexes receive the text and searchs for the feeded
 	// regexes
-	FindRegexes(text string) (result chan *Match, err error)
+	FindRegexes(text string) (matches []*Match, err error)
 }
 
 type RegexpEngine struct {
@@ -33,20 +33,16 @@ func (re *RegexpEngine) BuildEngine(regexes map[string]struct{}, caseSensitive b
 	return
 }
 
-func (re *RegexpEngine) FindRegexes(text string) (matches chan *Match, err error) {
-	matches = make(chan *Match, 10)
-	go func() {
-		defer close(matches)
-		for _, rgx := range re.compiledRegexes {
-			positions := rgx.FindAllStringIndex(text, -1)
-			for _, pos := range positions {
-				matches <- &Match{
-					Term:     fmt.Sprintf("%v", rgx),
-					Position: pos[0],
-				}
-			}
+func (re *RegexpEngine) FindRegexes(text string) (matches []*Match, err error) {
+	for _, rgx := range re.compiledRegexes {
+		positions := rgx.FindAllStringIndex(text, -1)
+		for _, pos := range positions {
+			matches = append(matches, &Match{
+				Term:     fmt.Sprintf("%v", rgx),
+				Position: pos[0],
+			})
 		}
-	}()
+	}
 	return
 }
 
@@ -59,8 +55,6 @@ func (pdm *EmptyRgxEngine) BuildEngine(regexes map[string]struct{}, caseSensitiv
 }
 
 // BuildEngine implements FindSubstrings with an nop
-func (pdm *EmptyRgxEngine) FindRegexes(text string) (matches chan *Match, err error) {
-	matches = make(chan *Match, 10)
-	defer close(matches)
+func (pdm *EmptyRgxEngine) FindRegexes(text string) (matches []*Match, err error) {
 	return
 }

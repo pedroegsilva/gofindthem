@@ -165,9 +165,9 @@ func (sem *SubstringEngineMock) BuildEngine(keywords map[string]struct{}, caseSe
 }
 
 // BuildEngine implements FindSubstrings with an nop
-func (sem *SubstringEngineMock) FindSubstrings(text string) (matches chan *Match, err error) {
+func (sem *SubstringEngineMock) FindSubstrings(text string) (matches []*Match, err error) {
 	args := sem.Called(text)
-	return args.Get(0).(chan *Match), args.Error(1)
+	return args.Get(0).([]*Match), args.Error(1)
 }
 
 type RegexEngineMock struct {
@@ -181,13 +181,13 @@ func (rem *RegexEngineMock) BuildEngine(regexes map[string]struct{}, caseSensiti
 }
 
 // FindRegexes implements FindRegexes with an nop
-func (rem *RegexEngineMock) FindRegexes(text string) (matches chan *Match, err error) {
+func (rem *RegexEngineMock) FindRegexes(text string) (matches []*Match, err error) {
 	args := rem.Called(text)
-	return args.Get(0).(chan *Match), args.Error(1)
+	return args.Get(0).([]*Match), args.Error(1)
 }
 
 type FindMockRet struct {
-	matches chan *Match
+	matches []*Match
 	err     error
 }
 
@@ -195,39 +195,39 @@ func TestProcessText(t *testing.T) {
 	assert := assert.New(t)
 	text := `text`
 
+	matches1 := []*Match{
+		&Match{1, "sharpest"},
+	}
+
+	matches2 := []*Match{
+		&Match{2, "words"},
+	}
+
+	emptyMatches := []*Match{}
 	subMock1 := new(SubstringEngineMock)
-	chan1 := make(chan *Match, 1)
-	chan1 <- &Match{1, "sharpest"}
-	close(chan1)
-
-	rgxMock1 := new(RegexEngineMock)
-	chan2 := make(chan *Match, 1)
-	chan2 <- &Match{2, "words"}
-	close(chan2)
-
-	emptyChan := make(chan *Match, 1)
-	close(emptyChan)
-
 	subMock2 := new(SubstringEngineMock)
 	subMock3 := new(SubstringEngineMock)
 	subMock4 := new(SubstringEngineMock)
 	subMock5 := new(SubstringEngineMock)
+	subMock6 := new(SubstringEngineMock)
 
+	rgxMock1 := new(RegexEngineMock)
 	rgxMock2 := new(RegexEngineMock)
 	rgxMock3 := new(RegexEngineMock)
 	rgxMock4 := new(RegexEngineMock)
 	rgxMock5 := new(RegexEngineMock)
+	rgxMock6 := new(RegexEngineMock)
 
-	finderBuildErrSub := NewFinder(subMock2, rgxMock2, true)
+	finderBuildErrSub := NewFinder(subMock3, rgxMock3, true)
 	finderBuildErrSub.keywords = map[string]struct{}{"1": struct{}{}}
 
-	finderBuildErrRgx := NewFinder(subMock3, rgxMock3, true)
+	finderBuildErrRgx := NewFinder(subMock4, rgxMock4, true)
 	finderBuildErrRgx.regexes = map[string]struct{}{"1": struct{}{}}
 
-	finderFindErrSub := NewFinder(subMock4, rgxMock4, true)
+	finderFindErrSub := NewFinder(subMock5, rgxMock5, true)
 	finderFindErrSub.keywords = map[string]struct{}{"1": struct{}{}}
 
-	finderFindErrRgx := NewFinder(subMock5, rgxMock5, true)
+	finderFindErrRgx := NewFinder(subMock6, rgxMock6, true)
 	finderFindErrRgx.regexes = map[string]struct{}{"1": struct{}{}}
 
 	tests := []struct {
@@ -276,8 +276,8 @@ func TestProcessText(t *testing.T) {
 			rgxMock:            rgxMock1,
 			buildSubEngMockRet: nil,
 			buildRgxEngMockRet: nil,
-			findSubMockRet:     FindMockRet{chan1, nil},
-			findRgxMockRet:     FindMockRet{chan2, nil},
+			findSubMockRet:     FindMockRet{matches1, nil},
+			findRgxMockRet:     FindMockRet{matches2, nil},
 			expectedEvalResp:   map[string]bool{`"sharpest"`: true, `r"words"`: true},
 			expectedErr:        nil,
 			message:            "success with build",
@@ -306,65 +306,65 @@ func TestProcessText(t *testing.T) {
 				},
 				keywords:          map[string]struct{}{"sharpest": struct{}{}},
 				regexes:           map[string]struct{}{"words": struct{}{}},
-				subEng:            subMock1,
-				rgxEng:            rgxMock1,
+				subEng:            subMock2,
+				rgxEng:            rgxMock2,
 				updatedSubMachine: true,
 				updatedRgxMachine: true,
 			},
-			subMock:            subMock1,
-			rgxMock:            rgxMock1,
+			subMock:            subMock2,
+			rgxMock:            rgxMock2,
 			buildSubEngMockRet: nil,
 			buildRgxEngMockRet: nil,
-			findSubMockRet:     FindMockRet{emptyChan, nil},
-			findRgxMockRet:     FindMockRet{emptyChan, nil},
+			findSubMockRet:     FindMockRet{emptyMatches, nil},
+			findRgxMockRet:     FindMockRet{emptyMatches, nil},
 			expectedEvalResp:   map[string]bool{`"sharpest"`: false, `r"words"`: false},
 			expectedErr:        nil,
 			message:            "success without build",
 		},
 		{
 			finder:             finderBuildErrSub,
-			subMock:            subMock2,
-			rgxMock:            rgxMock2,
+			subMock:            subMock3,
+			rgxMock:            rgxMock3,
 			buildSubEngMockRet: fmt.Errorf("error building sub engine"),
 			buildRgxEngMockRet: nil,
-			findSubMockRet:     FindMockRet{emptyChan, nil},
-			findRgxMockRet:     FindMockRet{emptyChan, nil},
+			findSubMockRet:     FindMockRet{emptyMatches, nil},
+			findRgxMockRet:     FindMockRet{emptyMatches, nil},
 			expectedEvalResp:   map[string]bool{},
 			expectedErr:        fmt.Errorf("error building sub engine"),
 			message:            "build engine error substring",
 		},
 		{
 			finder:             finderBuildErrRgx,
-			subMock:            subMock3,
-			rgxMock:            rgxMock3,
+			subMock:            subMock4,
+			rgxMock:            rgxMock4,
 			buildSubEngMockRet: nil,
 			buildRgxEngMockRet: fmt.Errorf("error building rgx engine"),
-			findSubMockRet:     FindMockRet{emptyChan, nil},
-			findRgxMockRet:     FindMockRet{emptyChan, nil},
+			findSubMockRet:     FindMockRet{emptyMatches, nil},
+			findRgxMockRet:     FindMockRet{emptyMatches, nil},
 			expectedEvalResp:   map[string]bool{},
 			expectedErr:        fmt.Errorf("error building rgx engine"),
 			message:            "build engine error regexes",
 		},
 		{
 			finder:             finderFindErrSub,
-			subMock:            subMock4,
-			rgxMock:            rgxMock4,
+			subMock:            subMock5,
+			rgxMock:            rgxMock5,
 			buildSubEngMockRet: nil,
 			buildRgxEngMockRet: nil,
-			findSubMockRet:     FindMockRet{emptyChan, fmt.Errorf("error on sub find")},
-			findRgxMockRet:     FindMockRet{emptyChan, nil},
+			findSubMockRet:     FindMockRet{emptyMatches, fmt.Errorf("error on sub find")},
+			findRgxMockRet:     FindMockRet{emptyMatches, nil},
 			expectedEvalResp:   map[string]bool{},
 			expectedErr:        fmt.Errorf("error on sub find"),
 			message:            "find substrings error",
 		},
 		{
 			finder:             finderFindErrRgx,
-			subMock:            subMock5,
-			rgxMock:            rgxMock5,
+			subMock:            subMock6,
+			rgxMock:            rgxMock6,
 			buildSubEngMockRet: nil,
 			buildRgxEngMockRet: nil,
-			findSubMockRet:     FindMockRet{emptyChan, nil},
-			findRgxMockRet:     FindMockRet{emptyChan, fmt.Errorf("error on rgx find")},
+			findSubMockRet:     FindMockRet{emptyMatches, nil},
+			findRgxMockRet:     FindMockRet{emptyMatches, fmt.Errorf("error on rgx find")},
 			expectedEvalResp:   map[string]bool{},
 			expectedErr:        fmt.Errorf("error on rgx find"),
 			message:            "find regex error",
@@ -411,34 +411,33 @@ func TestProcessText(t *testing.T) {
 
 func TestAddMatchesToSolverMap(t *testing.T) {
 	assert := assert.New(t)
+	matches1 := []*Match{
+		&Match{1, "sharpest"},
+		&Match{2, "sharpest"},
+		&Match{3, "sharpest"},
+		&Match{7, "words"},
+		&Match{9, "Showman"},
+		&Match{10, "showman"},
+	}
 
-	chan1 := make(chan *Match, 6)
-	chan1 <- &Match{1, "sharpest"}
-	chan1 <- &Match{2, "sharpest"}
-	chan1 <- &Match{3, "sharpest"}
-	chan1 <- &Match{7, "words"}
-	chan1 <- &Match{9, "Showman"}
-	chan1 <- &Match{10, "showman"}
-	close(chan1)
-
-	chan2 := make(chan *Match, 6)
-	chan2 <- &Match{1, "sharpest"}
-	chan2 <- &Match{2, "sharpest"}
-	chan2 <- &Match{3, "sharpest"}
-	chan2 <- &Match{7, "words"}
-	chan2 <- &Match{9, "Showman"}
-	chan2 <- &Match{10, "showman"}
-	close(chan2)
+	matches2 := []*Match{
+		&Match{1, "sharpest"},
+		&Match{2, "sharpest"},
+		&Match{3, "sharpest"},
+		&Match{7, "words"},
+		&Match{9, "Showman"},
+		&Match{10, "showman"},
+	}
 
 	tests := []struct {
 		finder            *Finder
-		inputChan         chan *Match
+		matches           []*Match
 		expectedSolverMap map[string]dsl.PatternResult
 		message           string
 	}{
 		{
-			finder:    NewFinder(&EmptyEngine{}, &EmptyRgxEngine{}, false),
-			inputChan: chan1,
+			finder:  NewFinder(&EmptyEngine{}, &EmptyRgxEngine{}, false),
+			matches: matches1,
 			expectedSolverMap: map[string]dsl.PatternResult{
 				"sharpest": dsl.PatternResult{
 					Val:            true,
@@ -456,8 +455,8 @@ func TestAddMatchesToSolverMap(t *testing.T) {
 			message: "create with caseinsesitive",
 		},
 		{
-			finder:    NewFinder(&EmptyEngine{}, &EmptyRgxEngine{}, true),
-			inputChan: chan2,
+			finder:  NewFinder(&EmptyEngine{}, &EmptyRgxEngine{}, true),
+			matches: matches2,
 			expectedSolverMap: map[string]dsl.PatternResult{
 				"sharpest": dsl.PatternResult{
 					Val:            true,
@@ -482,7 +481,7 @@ func TestAddMatchesToSolverMap(t *testing.T) {
 
 	for _, tc := range tests {
 		solverMap := make(map[string]dsl.PatternResult)
-		tc.finder.addMatchesToSolverMap(tc.inputChan, solverMap)
+		tc.finder.addMatchesToSolverMap(tc.matches, solverMap)
 		assert.Equal(tc.expectedSolverMap, solverMap, tc.message)
 	}
 }

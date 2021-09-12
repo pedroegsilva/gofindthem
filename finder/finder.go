@@ -119,25 +119,23 @@ func (finder *Finder) ProcessText(text string) (evalResp map[string]bool, err er
 	return
 }
 
-func (finder *Finder) addMatchesToSolverMap(matches chan *Match, solverMap map[string]dsl.PatternResult) {
-	if matches != nil {
-		for match := range matches {
-			term := match.Term
-			// if the engine returns the substring that was actualy matched
-			// we turn the key to lower to avoid inconsistency
-			if !finder.caseSensitive {
-				term = strings.ToLower(term)
-			}
+func (finder *Finder) addMatchesToSolverMap(matches []*Match, solverMap map[string]dsl.PatternResult) {
+	for _, match := range matches {
+		term := match.Term
+		// if the engine returns the substring that was actually matched
+		// we turn the key to lower to avoid inconsistency
+		if !finder.caseSensitive {
+			term = strings.ToLower(term)
+		}
 
-			if pattRes, ok := solverMap[term]; ok {
-				pattRes.Val = true
-				pattRes.SortedMatchPos = append(pattRes.SortedMatchPos, match.Position)
-				solverMap[term] = pattRes
-			} else {
-				solverMap[term] = dsl.PatternResult{
-					Val:            true,
-					SortedMatchPos: []int{match.Position},
-				}
+		if pattRes, ok := solverMap[term]; ok {
+			pattRes.Val = true
+			pattRes.SortedMatchPos = append(pattRes.SortedMatchPos, match.Position)
+			solverMap[term] = pattRes
+		} else {
+			solverMap[term] = dsl.PatternResult{
+				Val:            true,
+				SortedMatchPos: []int{match.Position},
 			}
 		}
 	}

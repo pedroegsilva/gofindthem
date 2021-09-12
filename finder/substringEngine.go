@@ -14,7 +14,7 @@ type SubstringEngine interface {
 	BuildEngine(keywords map[string]struct{}, caseSensitive bool) (err error)
 	// FindSubstrings receive the text and searchs for the feeded
 	// terms
-	FindSubstrings(text string) (result chan *Match, err error)
+	FindSubstrings(text string) (matches []*Match, err error)
 }
 
 // AnknownEngine implements SubstringEngine using the
@@ -41,18 +41,14 @@ func (am *AnknownEngine) BuildEngine(keywords map[string]struct{}, caseSensitive
 
 // FindSubstrings implements FindSubstrings using the
 // github.com/anknown/ahocorasick package
-func (am *AnknownEngine) FindSubstrings(text string) (matches chan *Match, err error) {
-	matches = make(chan *Match, 10)
-	go func() {
-		defer close(matches)
-		ms := am.AhoEngine.MultiPatternSearch([]rune(text), false)
-		for _, m := range ms {
-			matches <- &Match{
-				Term:     string(m.Word),
-				Position: m.Pos,
-			}
-		}
-	}()
+func (am *AnknownEngine) FindSubstrings(text string) (matches []*Match, err error) {
+	ms := am.AhoEngine.MultiPatternSearch([]rune(text), false)
+	for _, m := range ms {
+		matches = append(matches, &Match{
+			Term:     string(m.Word),
+			Position: m.Pos,
+		})
+	}
 	return
 }
 
@@ -78,18 +74,14 @@ func (cfm *CloudflareEngine) BuildEngine(keywords map[string]struct{}, caseSensi
 
 // FindSubstrings implements FindSubstrings using the
 // github.com/cloudflare/ahocorasick package
-func (cfm *CloudflareEngine) FindSubstrings(text string) (matches chan *Match, err error) {
-	matches = make(chan *Match, 10)
-	go func() {
-		defer close(matches)
-		ms := cfm.Matcher.Match([]byte(text))
-		for _, m := range ms {
-			matches <- &Match{
-				Term:     cfm.Dict[m],
-				Position: 0,
-			}
-		}
-	}()
+func (cfm *CloudflareEngine) FindSubstrings(text string) (matches []*Match, err error) {
+	ms := cfm.Matcher.Match([]byte(text))
+	for _, m := range ms {
+		matches = append(matches, &Match{
+			Term:     cfm.Dict[m],
+			Position: 0,
+		})
+	}
 	return
 }
 
@@ -119,18 +111,14 @@ func (pdm *PetarDambovalievEngine) BuildEngine(keywords map[string]struct{}, cas
 
 // FindSubstrings implements FindSubstrings using the
 // github.com/petar-dambovaliev/aho-corasick package
-func (pdm *PetarDambovalievEngine) FindSubstrings(text string) (matches chan *Match, err error) {
-	matches = make(chan *Match, 10)
-	go func() {
-		defer close(matches)
-		ms := pdm.AhoEngine.FindAll(text)
-		for _, m := range ms {
-			matches <- &Match{
-				Term:     text[m.Start():m.End()],
-				Position: m.Start(),
-			}
-		}
-	}()
+func (pdm *PetarDambovalievEngine) FindSubstrings(text string) (matches []*Match, err error) {
+	ms := pdm.AhoEngine.FindAll(text)
+	for _, m := range ms {
+		matches = append(matches, &Match{
+			Term:     text[m.Start():m.End()],
+			Position: m.Start(),
+		})
+	}
 	return
 }
 
@@ -144,8 +132,6 @@ func (pdm *EmptyEngine) BuildEngine(keywords map[string]struct{}, caseSensitive 
 }
 
 // BuildEngine implements FindSubstrings with an nop
-func (pdm *EmptyEngine) FindSubstrings(text string) (matches chan *Match, err error) {
-	matches = make(chan *Match, 10)
-	defer close(matches)
+func (pdm *EmptyEngine) FindSubstrings(text string) (matches []*Match, err error) {
 	return
 }
