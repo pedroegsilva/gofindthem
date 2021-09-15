@@ -14,6 +14,7 @@ func TestParser(t *testing.T) {
 		expStr           string
 		expectedExp      Expression
 		expectedKeywords map[string]struct{}
+		expectedRegexes  map[string]struct{}
 		expectedErr      error
 		caseSense        bool
 		message          string
@@ -27,9 +28,10 @@ func TestParser(t *testing.T) {
 			expectedKeywords: map[string]struct{}{
 				"1": struct{}{},
 			},
-			expectedErr: nil,
-			caseSense:   true,
-			message:     "single word",
+			expectedRegexes: map[string]struct{}{},
+			expectedErr:     nil,
+			caseSense:       true,
+			message:         "single word",
 		},
 		{
 			expStr: `("1")`,
@@ -40,12 +42,27 @@ func TestParser(t *testing.T) {
 			expectedKeywords: map[string]struct{}{
 				"1": struct{}{},
 			},
-			expectedErr: nil,
-			caseSense:   true,
-			message:     "single word parentheses",
+			expectedRegexes: map[string]struct{}{},
+			expectedErr:     nil,
+			caseSense:       true,
+			message:         "single word parentheses",
 		},
 		{
-			expStr: `"1" and "2"`,
+			expStr: `(r"1")`,
+			expectedExp: Expression{
+				Type:    UNIT_EXPR,
+				Literal: "1",
+			},
+			expectedKeywords: map[string]struct{}{},
+			expectedRegexes: map[string]struct{}{
+				"1": struct{}{},
+			},
+			expectedErr: nil,
+			caseSense:   true,
+			message:     "single word parentheses regex",
+		},
+		{
+			expStr: `"1" and r"2"`,
 			expectedExp: Expression{
 				Type: AND_EXPR,
 				LExpr: &Expression{
@@ -59,6 +76,8 @@ func TestParser(t *testing.T) {
 			},
 			expectedKeywords: map[string]struct{}{
 				"1": struct{}{},
+			},
+			expectedRegexes: map[string]struct{}{
 				"2": struct{}{},
 			},
 			expectedErr: nil,
@@ -82,9 +101,10 @@ func TestParser(t *testing.T) {
 				"1": struct{}{},
 				"2": struct{}{},
 			},
-			expectedErr: nil,
-			caseSense:   true,
-			message:     "simple and parentheses",
+			expectedRegexes: map[string]struct{}{},
+			expectedErr:     nil,
+			caseSense:       true,
+			message:         "simple and parentheses",
 		},
 		{
 			expStr: `"1" or "2"`,
@@ -103,9 +123,10 @@ func TestParser(t *testing.T) {
 				"1": struct{}{},
 				"2": struct{}{},
 			},
-			expectedErr: nil,
-			caseSense:   true,
-			message:     "simple or",
+			expectedRegexes: map[string]struct{}{},
+			expectedErr:     nil,
+			caseSense:       true,
+			message:         "simple or",
 		},
 		{
 			expStr: `not "1"`,
@@ -119,9 +140,27 @@ func TestParser(t *testing.T) {
 			expectedKeywords: map[string]struct{}{
 				"1": struct{}{},
 			},
+			expectedRegexes: map[string]struct{}{},
+			expectedErr:     nil,
+			caseSense:       true,
+			message:         "simple not",
+		},
+		{
+			expStr: `not r"1"`,
+			expectedExp: Expression{
+				Type: NOT_EXPR,
+				RExpr: &Expression{
+					Type:    UNIT_EXPR,
+					Literal: "1",
+				},
+			},
+			expectedKeywords: map[string]struct{}{},
+			expectedRegexes: map[string]struct{}{
+				"1": struct{}{},
+			},
 			expectedErr: nil,
 			caseSense:   true,
-			message:     "simple not",
+			message:     "simple not with regex",
 		},
 		{
 			expStr: `"1" and "2" or not "3"`,
@@ -151,9 +190,10 @@ func TestParser(t *testing.T) {
 				"2": struct{}{},
 				"3": struct{}{},
 			},
-			expectedErr: nil,
-			caseSense:   true,
-			message:     "multiple function no parentheses",
+			expectedRegexes: map[string]struct{}{},
+			expectedErr:     nil,
+			caseSense:       true,
+			message:         "multiple function no parentheses",
 		},
 		{
 			expStr: `"1" and ("2" or not "3")`,
@@ -183,12 +223,13 @@ func TestParser(t *testing.T) {
 				"2": struct{}{},
 				"3": struct{}{},
 			},
-			expectedErr: nil,
-			caseSense:   true,
-			message:     "multiple function with parentheses",
+			expectedRegexes: map[string]struct{}{},
+			expectedErr:     nil,
+			caseSense:       true,
+			message:         "multiple function with parentheses",
 		},
 		{
-			expStr: `not("2" or "3") and "1"`,
+			expStr: `not(r"2" or "3") and "1"`,
 			expectedExp: Expression{
 				Type: AND_EXPR,
 				LExpr: &Expression{
@@ -212,8 +253,10 @@ func TestParser(t *testing.T) {
 			},
 			expectedKeywords: map[string]struct{}{
 				"1": struct{}{},
-				"2": struct{}{},
 				"3": struct{}{},
+			},
+			expectedRegexes: map[string]struct{}{
+				"2": struct{}{},
 			},
 			expectedErr: nil,
 			caseSense:   true,
@@ -223,6 +266,7 @@ func TestParser(t *testing.T) {
 			expStr:           ``,
 			expectedExp:      Expression{},
 			expectedKeywords: map[string]struct{}{},
+			expectedRegexes:  map[string]struct{}{},
 			expectedErr:      fmt.Errorf("invalid expression: unexpected EOF found"),
 			caseSense:        true,
 			message:          "empty expression",
@@ -231,6 +275,7 @@ func TestParser(t *testing.T) {
 			expStr:           `(("1")`,
 			expectedExp:      Expression{},
 			expectedKeywords: map[string]struct{}{},
+			expectedRegexes:  map[string]struct{}{},
 			expectedErr:      fmt.Errorf("invalid expression: Unexpected '('"),
 			caseSense:        true,
 			message:          "invalid open parentheses",
@@ -239,6 +284,7 @@ func TestParser(t *testing.T) {
 			expStr:           `("1"))`,
 			expectedExp:      Expression{},
 			expectedKeywords: map[string]struct{}{},
+			expectedRegexes:  map[string]struct{}{},
 			expectedErr:      fmt.Errorf("invalid expression: unexpected EOF found. Extra closing parentheses: 1"),
 			caseSense:        true,
 			message:          "invalid close parentheses",
@@ -247,6 +293,7 @@ func TestParser(t *testing.T) {
 			expStr:           `and`,
 			expectedExp:      Expression{},
 			expectedKeywords: map[string]struct{}{},
+			expectedRegexes:  map[string]struct{}{},
 			expectedErr:      fmt.Errorf("invalid expression: no left expression was found for AND"),
 			caseSense:        true,
 			message:          "invalid expression empty dual exp",
@@ -255,6 +302,7 @@ func TestParser(t *testing.T) {
 			expStr:           ` "1" and `,
 			expectedExp:      Expression{},
 			expectedKeywords: map[string]struct{}{},
+			expectedRegexes:  map[string]struct{}{},
 			expectedErr:      fmt.Errorf("invalid expression: incomplete expression AND"),
 			caseSense:        true,
 			message:          "invalid expression incomplete dual exp",
@@ -263,6 +311,7 @@ func TestParser(t *testing.T) {
 			expStr:           `or`,
 			expectedExp:      Expression{},
 			expectedKeywords: map[string]struct{}{},
+			expectedRegexes:  map[string]struct{}{},
 			expectedErr:      fmt.Errorf("invalid expression: no left expression was found for OR"),
 			caseSense:        true,
 			message:          "invalid expression empty dual exp",
@@ -271,6 +320,7 @@ func TestParser(t *testing.T) {
 			expStr:           ` "1" or `,
 			expectedExp:      Expression{},
 			expectedKeywords: map[string]struct{}{},
+			expectedRegexes:  map[string]struct{}{},
 			expectedErr:      fmt.Errorf("invalid expression: incomplete expression OR"),
 			caseSense:        true,
 			message:          "invalid expression incomplete dual exp",
@@ -279,12 +329,13 @@ func TestParser(t *testing.T) {
 			expStr:           `not`,
 			expectedExp:      Expression{},
 			expectedKeywords: map[string]struct{}{},
+			expectedRegexes:  map[string]struct{}{},
 			expectedErr:      fmt.Errorf("invalid expression: Unexpected token 'EOF' after NOT"),
 			caseSense:        true,
 			message:          "invalid expression incomplete dual exp",
 		},
 		{
-			expStr: `"CaSe In sensItIVe" and "SomeThing"`,
+			expStr: `r"CaSe In sensItIVe" and "SomeThing"`,
 			expectedExp: Expression{
 				Type: AND_EXPR,
 				LExpr: &Expression{
@@ -297,15 +348,17 @@ func TestParser(t *testing.T) {
 				},
 			},
 			expectedKeywords: map[string]struct{}{
+				"something": struct{}{},
+			},
+			expectedRegexes: map[string]struct{}{
 				"case in sensitive": struct{}{},
-				"something":         struct{}{},
 			},
 			expectedErr: nil,
 			caseSense:   false,
 			message:     "case insensitive test",
 		},
 		{
-			expStr: `INORD("2" or "3") and "1"`,
+			expStr: `INORD(r"2" or "3") and "1"`,
 			expectedExp: Expression{
 				Type: AND_EXPR,
 				LExpr: &Expression{
@@ -332,8 +385,10 @@ func TestParser(t *testing.T) {
 			},
 			expectedKeywords: map[string]struct{}{
 				"1": struct{}{},
-				"2": struct{}{},
 				"3": struct{}{},
+			},
+			expectedRegexes: map[string]struct{}{
+				"2": struct{}{},
 			},
 			expectedErr: nil,
 			caseSense:   true,
@@ -343,6 +398,7 @@ func TestParser(t *testing.T) {
 			expStr:           `"1" and INORD("2" or not "3")`,
 			expectedExp:      Expression{},
 			expectedKeywords: map[string]struct{}{},
+			expectedRegexes:  map[string]struct{}{},
 			expectedErr:      fmt.Errorf("invalid expression: INORD operator must not contain NOT operator"),
 			caseSense:        true,
 			message:          "inord operator fail not",
@@ -351,6 +407,7 @@ func TestParser(t *testing.T) {
 			expStr:           `"1" and INORD( inord("2" or not "3") )`,
 			expectedExp:      Expression{},
 			expectedKeywords: map[string]struct{}{},
+			expectedRegexes:  map[string]struct{}{},
 			expectedErr:      fmt.Errorf("invalid expression: INORD operator must not contain INORD operator"),
 			caseSense:        true,
 			message:          "inord operator fail inord on a inord",
@@ -363,6 +420,14 @@ func TestParser(t *testing.T) {
 			caseSense:        true,
 			message:          "inord operator fail inord without parentheses",
 		},
+		{
+			expStr:           `r and`,
+			expectedExp:      Expression{},
+			expectedKeywords: map[string]struct{}{},
+			expectedErr:      fmt.Errorf("invalid expression: REGEX operator must be followed by KEYWORD but found 'AND'"),
+			caseSense:        true,
+			message:          "regex operator fail invalid next token",
+		},
 	}
 
 	for _, tc := range tests {
@@ -372,6 +437,7 @@ func TestParser(t *testing.T) {
 		if err == nil {
 			assert.Equal(tc.expectedExp, *exp, tc.message)
 			assert.Equal(tc.expectedKeywords, p.GetKeywords(), tc.message)
+			assert.Equal(tc.expectedRegexes, p.GetRegexes(), tc.message)
 		}
 	}
 }

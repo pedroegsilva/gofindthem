@@ -22,7 +22,7 @@ func TestScanner(t *testing.T) {
 		message  string
 	}{
 		{
-			expStr: `and   or   not  "keyword 1"  (   ) inord`,
+			expStr: `and   or   not  "keyword 1"  (   ) inord r`,
 			expected: []expectedAtScan{
 				expectedAtScan{Tok: AND, Lit: "and", Err: nil},
 				expectedAtScan{Tok: WS, Lit: "   ", Err: nil},
@@ -37,6 +37,8 @@ func TestScanner(t *testing.T) {
 				expectedAtScan{Tok: CLPAR, Lit: ")", Err: nil},
 				expectedAtScan{Tok: WS, Lit: " ", Err: nil},
 				expectedAtScan{Tok: INORD, Lit: "inord", Err: nil},
+				expectedAtScan{Tok: WS, Lit: " ", Err: nil},
+				expectedAtScan{Tok: REGEX, Lit: "r", Err: nil},
 				expectedAtScan{Tok: EOF, Lit: "", Err: nil},
 			},
 			message: "all tokens",

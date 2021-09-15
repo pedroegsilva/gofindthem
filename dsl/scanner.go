@@ -30,6 +30,7 @@ const (
 	OR    // 'or' or 'OR'
 	NOT   // 'not' or 'NOT'
 	INORD // 'inord' or 'INORD'
+	REGEX // 'r' or 'R'
 )
 
 // getName retuns a readable name for the Token
@@ -57,6 +58,8 @@ func (tok Token) getName() string {
 		return "NOT"
 	case INORD:
 		return "INORD"
+	case REGEX:
+		return "REGEX"
 	default:
 		return "UNEXPECTED"
 	}
@@ -85,12 +88,12 @@ func (s *Scanner) Scan() (tok Token, lit string, err error) {
 	case isWhitespace(ch):
 		s.unread()
 		return s.scanWhitespace()
-	case isLetter(ch):
-		s.unread()
-		return s.scanOperators()
 	case ch == '"':
 		s.unread()
 		return s.scanKeyword()
+	case isLetter(ch):
+		s.unread()
+		return s.scanOperators()
 	case ch == '(':
 		return OPPAR, "(", nil
 	case ch == ')':
@@ -160,6 +163,8 @@ func (s *Scanner) scanOperators() (tok Token, lit string, err error) {
 		tok = NOT
 	case "INORD":
 		tok = INORD
+	case "R":
+		tok = REGEX
 	default:
 		return ILLEGAL, "", fmt.Errorf("failed to scan operator: unexpected operator '%s' found", lit)
 	}

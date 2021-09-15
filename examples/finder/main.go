@@ -20,10 +20,11 @@ Donec facilisis mattis dignissim.`,
 	}
 
 	subEng := &finder.PetarDambovalievEngine{}
+	rgxEng := &finder.RegexpEngine{}
 	caseSensitive := true
-	findthem := finder.NewFinder(subEng, caseSensitive)
+	findthem := finder.NewFinder(subEng, rgxEng, caseSensitive)
 
-	if err := findthem.AddExpression(`"Lorem" and "ipsum"`); err != nil {
+	if err := findthem.AddExpression(`r"Lorem" and "ipsum"`); err != nil {
 		log.Fatal(err)
 	}
 
@@ -54,9 +55,15 @@ Donec facilisis mattis dignissim.`,
 		}
 	}
 
-	findthem2 := finder.NewFinder(subEng, !caseSensitive)
+	subEng2 := &finder.PetarDambovalievEngine{}
+	rgxEng2 := &finder.RegexpEngine{}
+	findthem2 := finder.NewFinder(subEng2, rgxEng2, !caseSensitive)
 
-	if err := findthem2.AddExpression(`"lorem ipsum" AND ("dolor" or "accumsan")`); err != nil {
+	if err := findthem2.AddExpression(`"Lorem Ipsum" AND ("doLor" or "accumsan")`); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := findthem2.AddExpression(`R"Lorem.*Ipsum" AND (r"doLor" or r"accumsan")`); err != nil {
 		log.Fatal(err)
 	}
 

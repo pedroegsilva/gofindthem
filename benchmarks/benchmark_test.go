@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -283,6 +284,37 @@ func BenchmarkDslWithPetarDambovaliev1000Exps(b *testing.B) {
 	BMDslSearch(exps1000, &finder.PetarDambovalievEngine{}, b)
 }
 
+func BenchmarkUseCasesDsl(b *testing.B) {
+	expressions := []string{
+		`"foo" and "bar"`,
+	}
+	BMDslSearch(expressions, &finder.PetarDambovalievEngine{}, b)
+}
+
+func BenchmarkUseCasesDslWithRegex(b *testing.B) {
+	expressions := []string{
+		`r"foo.*bar" and r"bar.*foo"`,
+	}
+	BMDslSearch(expressions, &finder.PetarDambovalievEngine{}, b)
+}
+
+func BenchmarkUseCasesDslWithInord(b *testing.B) {
+	expressions := []string{
+		`INORD("foo" and "bar") and INORD("bar" and "foo")`,
+	}
+	BMDslSearch(expressions, &finder.PetarDambovalievEngine{}, b)
+}
+
+func BenchmarkUseCasesRegexOnly(b *testing.B) {
+	rgx1 := regexp.MustCompile("foo.*bar")
+	rgx2 := regexp.MustCompile("bar.*foo")
+
+	for i := 0; i < b.N; i++ {
+		rgx1.FindAllStringIndex(randText100000, -1)
+		rgx2.FindAllStringIndex(randText100000, -1)
+	}
+}
+
 // test funcs
 
 func BMParser(exp string, b *testing.B) {
@@ -356,7 +388,7 @@ func BMPetarDambovalievBuild(exp string, b *testing.B) {
 }
 
 func BMCloudFlareSearch(exps []string, b *testing.B) {
-	findthem := finder.NewFinder(&finder.EmptyEngine{}, true)
+	findthem := finder.NewFinder(&finder.EmptyEngine{}, &finder.RegexpEngine{}, true)
 	for _, exp := range exps {
 		findthem.AddExpression(exp)
 	}
@@ -375,7 +407,7 @@ func BMCloudFlareSearch(exps []string, b *testing.B) {
 }
 
 func BMAnknownSearch(exps []string, b *testing.B) {
-	findthem := finder.NewFinder(&finder.EmptyEngine{}, true)
+	findthem := finder.NewFinder(&finder.EmptyEngine{}, &finder.RegexpEngine{}, true)
 	for _, exp := range exps {
 		findthem.AddExpression(exp)
 	}
@@ -395,7 +427,7 @@ func BMAnknownSearch(exps []string, b *testing.B) {
 }
 
 func BMPetarDambovalievSearch(exps []string, b *testing.B) {
-	findthem := finder.NewFinder(&finder.EmptyEngine{}, true)
+	findthem := finder.NewFinder(&finder.EmptyEngine{}, &finder.RegexpEngine{}, true)
 	for _, exp := range exps {
 		findthem.AddExpression(exp)
 	}
@@ -419,7 +451,7 @@ func BMPetarDambovalievSearch(exps []string, b *testing.B) {
 }
 
 func BMDslSearch(exps []string, subEng finder.SubstringEngine, b *testing.B) {
-	findthem := finder.NewFinder(subEng, false)
+	findthem := finder.NewFinder(subEng, &finder.RegexpEngine{}, false)
 	for _, exp := range exps {
 		findthem.AddExpression(exp)
 	}

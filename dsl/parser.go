@@ -16,9 +16,11 @@ type Parser struct {
 		unscanned bool   // if it was unscanned
 	}
 	keywords     map[string]struct{}
+	regexes      map[string]struct{}
 	parCount     int
 	casesesitive bool
 	inord        bool
+	regex        bool
 }
 
 // NewParser returns a new instance of Parser.
@@ -27,6 +29,7 @@ func NewParser(r io.Reader, casesesitive bool) *Parser {
 	return &Parser{
 		s:            NewScanner(r),
 		keywords:     make(map[string]struct{}),
+		regexes:      make(map[string]struct{}),
 		parCount:     0,
 		casesesitive: casesesitive,
 	}
@@ -36,6 +39,12 @@ func NewParser(r io.Reader, casesesitive bool) *Parser {
 // found on the parser
 func (p *Parser) GetKeywords() map[string]struct{} {
 	return p.keywords
+}
+
+// GetRegexes returns the set of UNIT terms (Regex) that where
+// found on the parser
+func (p *Parser) GetRegexes() map[string]struct{} {
+	return p.regexes
 }
 
 // Parse parses the expression and returns the root node
@@ -81,7 +90,7 @@ func (p *Parser) parse() (*Expression, error) {
 				exp.RExpr = keyExp
 			}
 
-			p.keywords[lit] = struct{}{}
+			p.addLiteralToSet(lit)
 
 		case AND:
 			exp, err = p.handleDualOp(exp, AND_EXPR)
@@ -109,6 +118,20 @@ func (p *Parser) parse() (*Expression, error) {
 			}
 
 			switch nextTok {
+			case REGEX:
+				nt, nl, err := p.scanIgnoreWhitespace()
+				if err != nil {
+					return exp, err
+				}
+				if nt != KEYWORD {
+					return exp, fmt.Errorf(
+						"invalid expression: REGEX operator must be followed by KEYWORD but found '%s'",
+						nextTok.getName(),
+					)
+				}
+				nextLit = nl
+				p.regex = true
+				fallthrough
 			case KEYWORD:
 				if !p.casesesitive {
 					nextLit = strings.ToLower(nextLit)
@@ -117,7 +140,7 @@ func (p *Parser) parse() (*Expression, error) {
 					Type:    UNIT_EXPR,
 					Literal: nextLit,
 				}
-				p.keywords[nextLit] = struct{}{}
+				p.addLiteralToSet(nextLit)
 
 			case OPPAR:
 				newExp, err := p.handleOpenPar()
@@ -134,6 +157,20 @@ func (p *Parser) parse() (*Expression, error) {
 			} else {
 				exp.RExpr = notExp
 			}
+
+		case REGEX:
+			nextTok, _, err := p.scanIgnoreWhitespace()
+			if err != nil {
+				return exp, err
+			}
+			if nextTok != KEYWORD {
+				return exp, fmt.Errorf(
+					"invalid expression: REGEX operator must be followed by KEYWORD but found '%s'",
+					nextTok.getName(),
+				)
+			}
+			p.regex = true
+			p.unscan()
 
 		case INORD:
 			if p.inord {
@@ -272,6 +309,7 @@ func (p *Parser) scanIgnoreWhitespace() (tok Token, lit string, err error) {
 	return
 }
 
+// handleOpenPar gets the expression that is inside the parentheses
 func (p *Parser) handleOpenPar() (*Expression, error) {
 	parlvl := p.parCount
 	p.parCount++
@@ -283,4 +321,14 @@ func (p *Parser) handleOpenPar() (*Expression, error) {
 		return newExp, fmt.Errorf("invalid expression: Unexpected '('")
 	}
 	return newExp, nil
+}
+
+// addLiteralToMap adds the literal to the correct set of terms
+func (p *Parser) addLiteralToSet(lit string) {
+	if p.regex {
+		p.regexes[lit] = struct{}{}
+		p.regex = false
+	} else {
+		p.keywords[lit] = struct{}{}
+	}
 }

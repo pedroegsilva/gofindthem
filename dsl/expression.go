@@ -222,7 +222,6 @@ func (ps *positionStack) pop() []int {
 // document.
 func (so SolverOrder) Solve(patterResByKeyword map[string]PatternResult, completeMap bool) (bool, error) {
 	posStack := &positionStack{}
-	// fmt.Println("so", so[0].PrettyFormat())
 	for i := len(so) - 1; i >= 0; i-- {
 		exp := so[i]
 		if exp == nil {
@@ -250,8 +249,6 @@ func (so SolverOrder) Solve(patterResByKeyword map[string]PatternResult, complet
 			if exp.Inord {
 				lpos := posStack.pop()
 				rpos := posStack.pop()
-				// fmt.Println("AND_EXPR lpos", lpos)
-				// fmt.Println("AND_EXPR rpos", rpos)
 				if exp.Inord && len(lpos) > 0 && len(rpos) > 0 {
 					idx := getLowestIdxGTVal(rpos, lpos[0])
 					if idx >= 0 {
@@ -268,8 +265,6 @@ func (so SolverOrder) Solve(patterResByKeyword map[string]PatternResult, complet
 			if exp.Inord {
 				lpos := posStack.pop()
 				rpos := posStack.pop()
-				// fmt.Println("OR_EXPR lpos", lpos)
-				// fmt.Println("OR_EXPR rpos", rpos)
 				posStack.add(mergeArraysSorted(lpos, rpos))
 			}
 

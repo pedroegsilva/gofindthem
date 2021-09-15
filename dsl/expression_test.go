@@ -273,12 +273,12 @@ var solverTestCases = []struct {
 		message:      "parentheses xor 3",
 	},
 	{
-		expStr: `("1" or "2") and not ("1" and "2")`,
+		expStr: `("1" or "2") and not (r"1" and "2")`,
 		solverMap: map[string]PatternResult{
 			"1": PatternResult{Val: true},
 		},
 		expectedResp: true,
-		message:      "parentheses xor 4",
+		message:      "parentheses xor 4 with regex",
 	},
 	{
 		expStr: `(("1" and "2" and "3") or ("4" and not "5")) and ("6" or "7") and "8"`,
@@ -300,7 +300,7 @@ var solverTestCases = []struct {
 		message:      "parentheses 2",
 	},
 	{
-		expStr: `(not ("1" and "2" and "3") or ("4" and not "5"))`,
+		expStr: `(not ("1" and "2" and r"3") or ("4" and not r"5"))`,
 		solverMap: map[string]PatternResult{
 			"1": PatternResult{Val: true},
 			"2": PatternResult{Val: true},
@@ -308,7 +308,7 @@ var solverTestCases = []struct {
 			"4": PatternResult{Val: true},
 		},
 		expectedResp: true,
-		message:      "parentheses 3",
+		message:      "parentheses with regex",
 	},
 	// inord tests
 	{
@@ -430,5 +430,25 @@ var solverTestCases = []struct {
 		},
 		expectedResp: true,
 		message:      "multiple inord",
+	},
+	{
+		expStr: `inord("b" and r"c") and inord(r"a" and "b")`,
+		// bcab
+		solverMap: map[string]PatternResult{
+			"a": PatternResult{
+				Val:            true,
+				SortedMatchPos: []int{2},
+			},
+			"b": PatternResult{
+				Val:            true,
+				SortedMatchPos: []int{0, 3},
+			},
+			"c": PatternResult{
+				Val:            true,
+				SortedMatchPos: []int{1},
+			},
+		},
+		expectedResp: true,
+		message:      "multiple inord with regex",
 	},
 }
