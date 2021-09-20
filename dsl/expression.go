@@ -45,6 +45,7 @@ type Expression struct {
 	Type    ExprType
 	Literal string
 	Val     bool
+	Pos     []int
 	Inord   bool
 }
 
@@ -194,45 +195,23 @@ func (exp *Expression) prettyFormat(lvl int) (pprint string) {
 // SolverOrder store the expressions Preorder
 type SolverOrder []*Expression
 
-// positionStack stack of []int used to solve inord operations
-// iteratively
-type positionStack [][]int
-
-// add implements add for positionStack
-func (ps *positionStack) add(pos []int) {
-	*ps = append(*ps, pos)
-}
-
-// pop implements pop for positionStack
-func (ps *positionStack) pop() []int {
-	var topPos []int
-	n := len(*ps) - 1
-	if n >= 0 {
-		topPos = (*ps)[n]
-		*ps = (*ps)[:n]
-	}
-
-	return topPos
-}
-
 // Solve solves the expresion iteratively. It has the option to use a complete map of
 // PatternResult or a incomplete map. If the complete map option is used the map must have
 // all the terms needed to solve de expression or it will return an error.
 // If the incomplete map is used, missing keys will be considered as a no match on the
 // document.
 func (so SolverOrder) Solve(patterResByKeyword map[string]PatternResult, completeMap bool) (bool, error) {
-	posStack := &positionStack{}
 	for i := len(so) - 1; i >= 0; i-- {
 		exp := so[i]
 		if exp == nil {
-			continue
+			return false, fmt.Errorf("malformed solver order - solver order should not have nil values")
 		}
 		switch exp.Type {
 		case UNIT_EXPR:
 			if resp, ok := patterResByKeyword[exp.Literal]; ok {
 				exp.Val = resp.Val
 				if exp.Inord {
-					posStack.add(resp.SortedMatchPos)
+					exp.Pos = resp.SortedMatchPos
 				}
 			} else {
 				if completeMap {
@@ -247,12 +226,12 @@ func (so SolverOrder) Solve(patterResByKeyword map[string]PatternResult, complet
 			}
 			exp.Val = exp.LExpr.Val && exp.RExpr.Val
 			if exp.Inord {
-				lpos := posStack.pop()
-				rpos := posStack.pop()
+				lpos := exp.LExpr.Pos
+				rpos := exp.RExpr.Pos
 				if exp.Inord && len(lpos) > 0 && len(rpos) > 0 {
 					idx := getLowestIdxGTVal(rpos, lpos[0])
 					if idx >= 0 {
-						posStack.add(rpos[idx:])
+						exp.Pos = rpos[idx:]
 					}
 				}
 			}
@@ -263,9 +242,9 @@ func (so SolverOrder) Solve(patterResByKeyword map[string]PatternResult, complet
 			}
 			exp.Val = exp.LExpr.Val || exp.RExpr.Val
 			if exp.Inord {
-				lpos := posStack.pop()
-				rpos := posStack.pop()
-				posStack.add(mergeArraysSorted(lpos, rpos))
+				lpos := exp.LExpr.Pos
+				rpos := exp.RExpr.Pos
+				exp.Pos = mergeArraysSorted(lpos, rpos)
 			}
 
 		case NOT_EXPR:
@@ -279,11 +258,7 @@ func (so SolverOrder) Solve(patterResByKeyword map[string]PatternResult, complet
 			if exp.RExpr == nil {
 				return false, fmt.Errorf("INORD statement do not have expression: %v", exp)
 			}
-			rpos := posStack.pop()
-			if len(*posStack) > 0 {
-				return false, fmt.Errorf("INORD did not clear the position stack:")
-			}
-			exp.Val = exp.RExpr.Val && len(rpos) > 0
+			exp.Val = exp.RExpr.Val && len(exp.RExpr.Pos) > 0
 		default:
 			return false, fmt.Errorf("Unable to process expression type %d", exp.Type)
 		}

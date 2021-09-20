@@ -500,6 +500,7 @@ func createRandExpressionAndSolverMap(
 			}
 		}
 	}
+	expression = "INORD(" + expression + ")"
 	return expression, solverMapComp, solverMapPart
 }
 
