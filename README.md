@@ -43,39 +43,39 @@ But any other library can be used as long as it "implements" the `SubstringEngin
 
 Then you need to add the expressions that need to be solved.
 ```go
-    if err := findthem.AddExpression(`r"Lorem" and "ipsum"`); err != nil {
-        log.Fatal(err)
-    }
+	if err := findthem.AddExpressionWithTag(`r"Lorem" and "ipsum"`, "test"); err != nil {
+		log.Fatal(err)
+	}
 
-    if err := findthem.AddExpression(`("Nullam" and not "volutpat")`); err != nil {
-        log.Fatal(err)
-    }
+	if err := findthem.AddExpressionWithTag(`("Nullam" and not "volutpat")`, "test2"); err != nil {
+		log.Fatal(err)
+	}
 
-    if err := findthem.AddExpression(`"lorem ipsum" AND ("dolor" or "accumsan")`); err != nil {
-        log.Fatal(err)
-    }
+	if err := findthem.AddExpressionWithTag(`"lorem ipsum" AND ("dolor" or "accumsan")`, "test"); err != nil {
+		log.Fatal(err)
+	}
 
-    if err := findthem.AddExpression(`"purus.\nSuspendisse"`); err != nil {
-        log.Fatal(err)
-    }
+	if err := findthem.AddExpression(`"purus.\nSuspendisse"`); err != nil {
+		log.Fatal(err)
+	}
 
-    if err := findthem.AddExpression(`inord("Lorem" and "FOO")`); err != nil {
-        log.Fatal(err)
-    }
+	if err := findthem.AddExpression(`inord("Lorem" and "FOO")`); err != nil {
+		log.Fatal(err)
+	}
 ```
 
 And finally you can check which expressions match on each text. 
 ```go
-    for i, text := range texts {
-        resp, err := findthem.ProcessText(text)
-        if err != nil {
-            log.Fatal(err)
-        }
-        fmt.Printf("----------Text %d case sensitive-----------\n", i)
-        for exp, val := range resp {
-            fmt.Printf("exp: %s | %v\n", exp, val)
-        }
-    }
+	for i, text := range texts {
+		resp, err := findthem.ProcessText(text)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("----------Text %d case sensitive-----------\n", i)
+		for _, expRes := range resp {
+			fmt.Printf("exp: [%s]%s | %v\n", expRes.Tag, expRes.ExpresionStr, expRes.Evaluation)
+		}
+	}
 ```
 
 The full example can be found at `/examples/finder/main.go`
