@@ -24,15 +24,15 @@ Donec facilisis mattis dignissim.`,
 	caseSensitive := true
 	findthem := finder.NewFinder(subEng, rgxEng, caseSensitive)
 
-	if err := findthem.AddExpression(`r"Lorem" and "ipsum"`); err != nil {
+	if err := findthem.AddExpressionWithTag(`r"Lorem" and "ipsum"`, "test"); err != nil {
 		log.Fatal(err)
 	}
 
-	if err := findthem.AddExpression(`("Nullam" and not "volutpat")`); err != nil {
+	if err := findthem.AddExpressionWithTag(`("Nullam" and not "volutpat")`, "test2"); err != nil {
 		log.Fatal(err)
 	}
 
-	if err := findthem.AddExpression(`"lorem ipsum" AND ("dolor" or "accumsan")`); err != nil {
+	if err := findthem.AddExpressionWithTag(`"lorem ipsum" AND ("dolor" or "accumsan")`, "test"); err != nil {
 		log.Fatal(err)
 	}
 
@@ -50,8 +50,8 @@ Donec facilisis mattis dignissim.`,
 			log.Fatal(err)
 		}
 		fmt.Printf("----------Text %d case sensitive-----------\n", i)
-		for exp, val := range resp {
-			fmt.Printf("exp: %s | %v\n", exp, val)
+		for _, expRes := range resp {
+			fmt.Printf("exp: [%s]%s | %v\n", expRes.Tag, expRes.ExpresionStr, expRes.Evaluation)
 		}
 	}
 
@@ -73,8 +73,8 @@ Donec facilisis mattis dignissim.`,
 			log.Fatal(err)
 		}
 		fmt.Printf("----------Text %d case insensitive-----------\n", i)
-		for exp, val := range resp {
-			fmt.Printf("exp: %s | %v\n", exp, val)
+		for _, expRes := range resp {
+			fmt.Printf("exp: [%s]%s | %v\n", expRes.Tag, expRes.ExpresionStr, expRes.Evaluation)
 		}
 	}
 }

@@ -53,6 +53,7 @@ func TestAddExpression(t *testing.T) {
 								Literal: "b",
 							},
 						},
+						"",
 					},
 					exprWrapper{
 						`not "C"`,
@@ -69,6 +70,7 @@ func TestAddExpression(t *testing.T) {
 								Literal: "c",
 							},
 						},
+						"",
 					},
 				},
 				keywords: map[string]struct{}{
@@ -95,6 +97,7 @@ func TestAddExpression(t *testing.T) {
 								Literal: "A",
 							},
 						},
+						"",
 					},
 				},
 				keywords: map[string]struct{}{
@@ -118,6 +121,7 @@ func TestAddExpression(t *testing.T) {
 								Literal: "A",
 							},
 						},
+						"",
 					},
 				},
 				keywords: map[string]struct{}{
@@ -239,7 +243,7 @@ func TestProcessText(t *testing.T) {
 		buildEngExpecterInput error
 		findSubMockRet        FindMockRet
 		findRgxMockRet        FindMockRet
-		expectedEvalResp      map[string]bool
+		expectedExpRes        []ExpressionResult
 		expectedErr           error
 		message               string
 	}{
@@ -254,6 +258,7 @@ func TestProcessText(t *testing.T) {
 								Literal: "sharpest",
 							},
 						},
+						"",
 					},
 					exprWrapper{
 						`r"words"`,
@@ -263,6 +268,7 @@ func TestProcessText(t *testing.T) {
 								Literal: "words",
 							},
 						},
+						"",
 					},
 				},
 				keywords:          map[string]struct{}{"sharpest": struct{}{}},
@@ -278,9 +284,18 @@ func TestProcessText(t *testing.T) {
 			buildRgxEngMockRet: nil,
 			findSubMockRet:     FindMockRet{matches1, nil},
 			findRgxMockRet:     FindMockRet{matches2, nil},
-			expectedEvalResp:   map[string]bool{`"sharpest"`: true, `r"words"`: true},
-			expectedErr:        nil,
-			message:            "success with build",
+			expectedExpRes: []ExpressionResult{
+				ExpressionResult{
+					Evaluation:   true,
+					ExpresionStr: `"sharpest"`,
+				},
+				ExpressionResult{
+					Evaluation:   true,
+					ExpresionStr: `r"words"`,
+				},
+			},
+			expectedErr: nil,
+			message:     "success with build",
 		},
 		{
 			finder: &Finder{
@@ -293,6 +308,7 @@ func TestProcessText(t *testing.T) {
 								Literal: "sharpest",
 							},
 						},
+						"",
 					},
 					exprWrapper{
 						`r"words"`,
@@ -302,6 +318,7 @@ func TestProcessText(t *testing.T) {
 								Literal: "words",
 							},
 						},
+						"",
 					},
 				},
 				keywords:          map[string]struct{}{"sharpest": struct{}{}},
@@ -317,9 +334,18 @@ func TestProcessText(t *testing.T) {
 			buildRgxEngMockRet: nil,
 			findSubMockRet:     FindMockRet{emptyMatches, nil},
 			findRgxMockRet:     FindMockRet{emptyMatches, nil},
-			expectedEvalResp:   map[string]bool{`"sharpest"`: false, `r"words"`: false},
-			expectedErr:        nil,
-			message:            "success without build",
+			expectedExpRes: []ExpressionResult{
+				ExpressionResult{
+					Evaluation:   false,
+					ExpresionStr: `"sharpest"`,
+				},
+				ExpressionResult{
+					Evaluation:   false,
+					ExpresionStr: `r"words"`,
+				},
+			},
+			expectedErr: nil,
+			message:     "success without build",
 		},
 		{
 			finder:             finderBuildErrSub,
@@ -329,7 +355,7 @@ func TestProcessText(t *testing.T) {
 			buildRgxEngMockRet: nil,
 			findSubMockRet:     FindMockRet{emptyMatches, nil},
 			findRgxMockRet:     FindMockRet{emptyMatches, nil},
-			expectedEvalResp:   map[string]bool{},
+			expectedExpRes:     []ExpressionResult{},
 			expectedErr:        fmt.Errorf("error building sub engine"),
 			message:            "build engine error substring",
 		},
@@ -341,7 +367,7 @@ func TestProcessText(t *testing.T) {
 			buildRgxEngMockRet: fmt.Errorf("error building rgx engine"),
 			findSubMockRet:     FindMockRet{emptyMatches, nil},
 			findRgxMockRet:     FindMockRet{emptyMatches, nil},
-			expectedEvalResp:   map[string]bool{},
+			expectedExpRes:     []ExpressionResult{},
 			expectedErr:        fmt.Errorf("error building rgx engine"),
 			message:            "build engine error regexes",
 		},
@@ -353,7 +379,7 @@ func TestProcessText(t *testing.T) {
 			buildRgxEngMockRet: nil,
 			findSubMockRet:     FindMockRet{emptyMatches, fmt.Errorf("error on sub find")},
 			findRgxMockRet:     FindMockRet{emptyMatches, nil},
-			expectedEvalResp:   map[string]bool{},
+			expectedExpRes:     []ExpressionResult{},
 			expectedErr:        fmt.Errorf("error on sub find"),
 			message:            "find substrings error",
 		},
@@ -365,7 +391,7 @@ func TestProcessText(t *testing.T) {
 			buildRgxEngMockRet: nil,
 			findSubMockRet:     FindMockRet{emptyMatches, nil},
 			findRgxMockRet:     FindMockRet{emptyMatches, fmt.Errorf("error on rgx find")},
-			expectedEvalResp:   map[string]bool{},
+			expectedExpRes:     []ExpressionResult{},
 			expectedErr:        fmt.Errorf("error on rgx find"),
 			message:            "find regex error",
 		},
@@ -400,12 +426,12 @@ func TestProcessText(t *testing.T) {
 			).Return(tc.findRgxMockRet.matches, tc.findRgxMockRet.err)
 		}
 
-		eval, err := tc.finder.ProcessText(text)
+		expRes, err := tc.finder.ProcessText(text)
 		assert.Equal(tc.expectedErr, err, tc.message)
 		if err != nil {
 			continue
 		}
-		assert.Equal(tc.expectedEvalResp, eval, tc.message)
+		assert.Equal(tc.expectedExpRes, expRes, tc.message)
 	}
 }
 
@@ -517,6 +543,7 @@ func TestSolveExpressions(t *testing.T) {
 					lexp1,
 					rexp1,
 				},
+				"",
 			},
 			exprWrapper{
 				`"no one" or "Can get in the way"`,
@@ -529,16 +556,17 @@ func TestSolveExpressions(t *testing.T) {
 					lexp2,
 					rexp2,
 				},
+				"",
 			},
 		},
 	}
 
 	tests := []struct {
-		finder       *Finder
-		solverMap    map[string]dsl.PatternResult
-		expectedEval map[string]bool
-		expectedErr  error
-		message      string
+		finder         *Finder
+		solverMap      map[string]dsl.PatternResult
+		expectedExpRes []ExpressionResult
+		expectedErr    error
+		message        string
 	}{
 		{
 			finder: finder,
@@ -550,9 +578,15 @@ func TestSolveExpressions(t *testing.T) {
 					Val: true,
 				},
 			},
-			expectedEval: map[string]bool{
-				`"sharpest" and "words"`:           true,
-				`"no one" or "Can get in the way"`: false,
+			expectedExpRes: []ExpressionResult{
+				ExpressionResult{
+					Evaluation:   true,
+					ExpresionStr: `"sharpest" and "words"`,
+				},
+				ExpressionResult{
+					Evaluation:   false,
+					ExpresionStr: `"no one" or "Can get in the way"`,
+				},
 			},
 			expectedErr: nil,
 			message:     "first exp true",
@@ -564,9 +598,15 @@ func TestSolveExpressions(t *testing.T) {
 					Val: true,
 				},
 			},
-			expectedEval: map[string]bool{
-				`"sharpest" and "words"`:           false,
-				`"no one" or "Can get in the way"`: true,
+			expectedExpRes: []ExpressionResult{
+				ExpressionResult{
+					Evaluation:   false,
+					ExpresionStr: `"sharpest" and "words"`,
+				},
+				ExpressionResult{
+					Evaluation:   true,
+					ExpresionStr: `"no one" or "Can get in the way"`,
+				},
 			},
 			expectedErr: nil,
 			message:     "first exp true",
@@ -578,9 +618,15 @@ func TestSolveExpressions(t *testing.T) {
 					Val: true,
 				},
 			},
-			expectedEval: map[string]bool{
-				`"sharpest" and "words"`:           false,
-				`"no one" or "Can get in the way"`: false,
+			expectedExpRes: []ExpressionResult{
+				ExpressionResult{
+					Evaluation:   false,
+					ExpresionStr: `"sharpest" and "words"`,
+				},
+				ExpressionResult{
+					Evaluation:   false,
+					ExpresionStr: `"no one" or "Can get in the way"`,
+				},
 			},
 			expectedErr: nil,
 			message:     "both false",
@@ -598,9 +644,15 @@ func TestSolveExpressions(t *testing.T) {
 					Val: true,
 				},
 			},
-			expectedEval: map[string]bool{
-				`"sharpest" and "words"`:           true,
-				`"no one" or "Can get in the way"`: true,
+			expectedExpRes: []ExpressionResult{
+				ExpressionResult{
+					Evaluation:   true,
+					ExpresionStr: `"sharpest" and "words"`,
+				},
+				ExpressionResult{
+					Evaluation:   true,
+					ExpresionStr: `"no one" or "Can get in the way"`,
+				},
 			},
 			expectedErr: nil,
 			message:     "both true",
@@ -608,10 +660,10 @@ func TestSolveExpressions(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		evalResp, err := tc.finder.solveExpressions(tc.solverMap)
+		expRes, err := tc.finder.solveExpressions(tc.solverMap)
 		assert.Equal(tc.expectedErr, err, tc.message)
 		if err == nil {
-			assert.Equal(tc.expectedEval, evalResp, tc.message)
+			assert.Equal(tc.expectedExpRes, expRes, tc.message)
 		}
 	}
 }
