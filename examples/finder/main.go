@@ -9,9 +9,14 @@ import (
 
 func main() {
 	texts := []string{
-		`lore ipsum`,
-		`test`,
-		`something`,
+		`Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+Curabitur porta lobortis nulla volutpat sagittis. 
+Nulla ac sapien sodales, pulvinar elit ut, lobortis purus.
+Suspendisse id luctus quam FOO.`,
+		`FOO Lorem ipsum Nullam non purus eu leo accumsan cursus a quis erat. 
+Etiam dictum enim eu commodo semper.
+Mauris feugiat vitae eros et facilisis.
+Donec facilisis mattis dignissim.`,
 	}
 
 	subEng := &finder.PetarDambovalievEngine{}
@@ -19,11 +24,23 @@ func main() {
 	caseSensitive := true
 	findthem := finder.NewFinder(subEng, rgxEng, caseSensitive)
 
-	if err := findthem.AddExpressionWithTag(`"test"`, "test"); err != nil {
+	if err := findthem.AddExpressionWithTag(`r"Lorem" and "ipsum"`, "test"); err != nil {
 		log.Fatal(err)
 	}
 
-	if err := findthem.AddExpressionWithTag(`"something"`, "test2"); err != nil {
+	if err := findthem.AddExpressionWithTag(`("Nullam" and not "volutpat")`, "test2"); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := findthem.AddExpressionWithTag(`"lorem ipsum" AND ("dolor" or "accumsan")`, "test"); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := findthem.AddExpression(`"purus.\nSuspendisse"`); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := findthem.AddExpression(`inord("Lorem" and "FOO")`); err != nil {
 		log.Fatal(err)
 	}
 
@@ -42,11 +59,11 @@ func main() {
 	rgxEng2 := &finder.RegexpEngine{}
 	findthem2 := finder.NewFinder(subEng2, rgxEng2, !caseSensitive)
 
-	if err := findthem2.AddExpressionWithTag(`"test"`, "test"); err != nil {
+	if err := findthem2.AddExpression(`"Lorem Ipsum" AND ("doLor" or "accumsan")`); err != nil {
 		log.Fatal(err)
 	}
 
-	if err := findthem2.AddExpressionWithTag(`"something"`, "test2"); err != nil {
+	if err := findthem2.AddExpression(`R"Lorem.*Ipsum" AND (r"doLor" or r"accumsan")`); err != nil {
 		log.Fatal(err)
 	}
 
