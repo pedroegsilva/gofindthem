@@ -8,4 +8,6 @@ require (
 	github.com/cloudflare/ahocorasick v0.0.0-20210425175752-730270c3e184
 	github.com/petar-dambovaliev/aho-corasick v0.0.0-20210512121028-af76a9ff7276
 	github.com/stretchr/testify v1.7.0
+	golang.org/x/tools v0.1.0
+	gonum.org/v1/plot v0.9.0
 )

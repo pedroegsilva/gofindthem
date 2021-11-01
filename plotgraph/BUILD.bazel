@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "plotgraph_lib",
+    srcs = ["main.go"],
+    data = [":files/benchmark1.txt",
+    ":files/benchmark2.txt",
+    ":files/benchmark3.txt",
+    ],
+    importpath = "github.com/pedroegsilva/gofindthem/plotgraph",
+    visibility = ["//visibility:private"],
+    deps = [
+        "@org_golang_x_tools//benchmark/parse",
+        "@org_gonum_v1_plot//:plot",
+        "@org_gonum_v1_plot//plotter",
+        "@org_gonum_v1_plot//plotutil",
+        "@org_gonum_v1_plot//vg",
+    ],
+)
+
+go_binary(
+    name = "plotgraph",
+    embed = [":plotgraph_lib"],
+    visibility = ["//visibility:public"],
+)
