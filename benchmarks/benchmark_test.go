@@ -52,14 +52,14 @@ func init() {
 		log.Fatal(err)
 	}
 
-	exp100, solverMapComp100, solverMapPart100 = createRandExpressionAndSolverMap(100)
-	exp10000, solverMapComp10000, solverMapPart10000 = createRandExpressionAndSolverMap(10000)
+	exp100, sortedMatchesByKeywordComp100, sortedMatchesByKeywordPart100 = createRandExpressionAndSolverMap(100)
+	exp10000, sortedMatchesByKeywordComp10000, sortedMatchesByKeywordPart10000 = createRandExpressionAndSolverMap(10000)
 	exps10 = createExpressions(10)
 	exps100 = createExpressions(100)
 	exps1000 = createExpressions(1000)
 	knownTerms := make([]string, 10000)
 	count = 0
-	for word := range solverMapComp10000 {
+	for word := range sortedMatchesByKeywordComp10000 {
 		knownTerms[count] = word
 		count++
 	}
@@ -69,14 +69,14 @@ func init() {
 var alphabet = []rune("0123456789abcdefghijklmnopqrstuvwxyz")
 
 var (
-	words                                  [466550]string
-	exp100, exp10000                       string
-	solverMapComp100, solverMapPart100     map[string]dsl.PatternResult
-	solverMapComp10000, solverMapPart10000 map[string]dsl.PatternResult
-	exps10                                 []string
-	exps100                                []string
-	exps1000                               []string
-	randText100000                         string
+	words                                                            [466550]string
+	exp100, exp10000                                                 string
+	sortedMatchesByKeywordComp100, sortedMatchesByKeywordPart100     map[string][]int
+	sortedMatchesByKeywordComp10000, sortedMatchesByKeywordPart10000 map[string][]int
+	exps10                                                           []string
+	exps100                                                          []string
+	exps1000                                                         []string
+	randText100000                                                   string
 )
 
 const (
@@ -90,19 +90,19 @@ func BenchmarkParser100(b *testing.B) {
 }
 
 func BenchmarkSolverCompleteMap100(b *testing.B) {
-	BMSolver(exp100, solverMapComp100, true, b)
+	BMSolver(exp100, sortedMatchesByKeywordComp100, b)
 }
 
 func BenchmarkSolverPartialMap100(b *testing.B) {
-	BMSolver(exp100, solverMapPart100, false, b)
+	BMSolver(exp100, sortedMatchesByKeywordPart100, b)
 }
 
 func BenchmarkSolverIterCompleteMap100(b *testing.B) {
-	BMSolverIter(exp100, solverMapComp100, true, b)
+	BMSolverIter(exp100, sortedMatchesByKeywordComp100, b)
 }
 
 func BenchmarkSolverIterPartialMap100(b *testing.B) {
-	BMSolverIter(exp100, solverMapPart100, false, b)
+	BMSolverIter(exp100, sortedMatchesByKeywordPart100, b)
 }
 
 func BenchmarkAhocorasickCloudFlareBuild100(b *testing.B) {
@@ -148,19 +148,19 @@ func BenchmarkParser10000(b *testing.B) {
 }
 
 func BenchmarkSolverCompleteMap10000(b *testing.B) {
-	BMSolver(exp10000, solverMapComp10000, true, b)
+	BMSolver(exp10000, sortedMatchesByKeywordComp10000, b)
 }
 
 func BenchmarkSolverPartialMap10000(b *testing.B) {
-	BMSolver(exp10000, solverMapPart10000, false, b)
+	BMSolver(exp10000, sortedMatchesByKeywordPart10000, b)
 }
 
 func BenchmarkSolverIterCompleteMap10000(b *testing.B) {
-	BMSolverIter(exp10000, solverMapComp10000, true, b)
+	BMSolverIter(exp10000, sortedMatchesByKeywordComp10000, b)
 }
 
 func BenchmarkSolverIterPartialMap10000(b *testing.B) {
-	BMSolverIter(exp10000, solverMapPart10000, false, b)
+	BMSolverIter(exp10000, sortedMatchesByKeywordPart10000, b)
 }
 
 func BenchmarkAhocorasickCloudFlareBuild10000(b *testing.B) {
@@ -323,20 +323,20 @@ func BMParser(exp string, b *testing.B) {
 	}
 }
 
-func BMSolver(exp string, solverMap map[string]dsl.PatternResult, completeMap bool, b *testing.B) {
+func BMSolver(exp string, sortedMatchesByKeyword map[string][]int, b *testing.B) {
 	p := dsl.NewParser(strings.NewReader(exp), true)
 	e, _ := p.Parse()
 	for i := 0; i < b.N; i++ {
-		e.Solve(solverMap, completeMap)
+		e.Solve(sortedMatchesByKeyword)
 	}
 }
 
-func BMSolverIter(exp string, solverMap map[string]dsl.PatternResult, completeMap bool, b *testing.B) {
+func BMSolverIter(exp string, sortedMatchesByKeyword map[string][]int, b *testing.B) {
 	p := dsl.NewParser(strings.NewReader(exp), true)
 	e, _ := p.Parse()
 	so := e.CreateSolverOrder()
 	for i := 0; i < b.N; i++ {
-		so.Solve(solverMap, completeMap)
+		so.Solve(sortedMatchesByKeyword)
 	}
 }
 
@@ -474,9 +474,9 @@ func RandStringRunes(n int) string {
 
 func createRandExpressionAndSolverMap(
 	numTerm int,
-) (string, map[string]dsl.PatternResult, map[string]dsl.PatternResult) {
-	solverMapComp := make(map[string]dsl.PatternResult, numTerm)
-	solverMapPart := make(map[string]dsl.PatternResult, numTerm/4)
+) (string, map[string][]int, map[string][]int) {
+	sortedMatchesByKeywordComp := make(map[string][]int, numTerm)
+	sortedMatchesByKeywordPart := make(map[string][]int, numTerm/4)
 	expression := ""
 	dictLen := len(words)
 	for i := 1; i <= numTerm; i++ {
@@ -488,20 +488,14 @@ func createRandExpressionAndSolverMap(
 			expression = expression + fmt.Sprintf(`"%s" AND `, keyword)
 		}
 		if rand.Intn(4) == 0 {
-			solverMapComp[keyword] = dsl.PatternResult{
-				Val: true,
-			}
-			solverMapPart[keyword] = dsl.PatternResult{
-				Val: true,
-			}
+			sortedMatchesByKeywordComp[keyword] = []int{}
+			sortedMatchesByKeywordPart[keyword] = []int{}
 		} else {
-			solverMapComp[keyword] = dsl.PatternResult{
-				Val: false,
-			}
+			sortedMatchesByKeywordComp[keyword] = []int{}
 		}
 	}
 	expression = "INORD(" + expression + ")"
-	return expression, solverMapComp, solverMapPart
+	return expression, sortedMatchesByKeywordComp, sortedMatchesByKeywordPart
 }
 
 func createExpressions(numExp int) []string {
