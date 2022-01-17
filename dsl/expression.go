@@ -47,13 +47,6 @@ type Expression struct {
 	Inord   bool
 }
 
-// PatternResult stores if the patter was matched on
-// the text and the positions it was found
-type PatternResult struct {
-	Val            bool
-	SortedMatchPos []int
-}
-
 // GetTypeName returns the type of the expression with a readable name
 func (exp *Expression) GetTypeName() string {
 	return exp.Type.GetName()
@@ -80,7 +73,7 @@ func (exp *Expression) solve(sortedMatchesByKeyword map[string][]int) (bool, []i
 
 	case AND_EXPR:
 		if exp.LExpr == nil || exp.RExpr == nil {
-			return false, nil, fmt.Errorf("And statment do not have rigth or left expression: %v", exp)
+			return false, nil, fmt.Errorf("AND statment do not have rigth or left expression: %v", exp)
 		}
 		lval, lpos, err := exp.LExpr.solve(sortedMatchesByKeyword)
 		if err != nil {
@@ -144,7 +137,7 @@ func (exp *Expression) solve(sortedMatchesByKeyword map[string][]int) (bool, []i
 		return rval && len(rpos) > 0, nil, nil
 
 	default:
-		return false, nil, fmt.Errorf("Unable to process expression type %d", exp.Type)
+		return false, nil, fmt.Errorf("unable to process expression type %d", exp.Type)
 	}
 }
 
@@ -212,7 +205,7 @@ func (so SolverOrder) Solve(sortedMatchesByKeyword map[string][]int) (bool, erro
 			l, lOk := values[exp.LExpr]
 			r, rOk := values[exp.RExpr]
 			if !lOk || !rOk {
-				return false, fmt.Errorf("And statement do not have right or left expression: %v", exp)
+				return false, fmt.Errorf("AND statement do not have right or left expression: %v", exp)
 			}
 			vap := valAndPos{Val: l.Val && r.Val}
 
@@ -254,7 +247,7 @@ func (so SolverOrder) Solve(sortedMatchesByKeyword map[string][]int) (bool, erro
 			}
 			values[exp] = valAndPos{Val: r.Val && len(r.Pos) > 0}
 		default:
-			return false, fmt.Errorf("Unable to process expression type %d", exp.Type)
+			return false, fmt.Errorf("unable to process expression type %d", exp.Type)
 		}
 	}
 	return values[so[0]].Val, nil
