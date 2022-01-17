@@ -24,36 +24,27 @@ func main() {
 
 	fmt.Printf("pretty format:\n%s\n", expression.PrettyFormat())
 
-	matches := map[string]dsl.PatternResult{
-		"foo": dsl.PatternResult{
-			Val:            true,
-			SortedMatchPos: []int{0, 2, 5},
-		},
-		"bar": dsl.PatternResult{
-			Val:            true,
-			SortedMatchPos: []int{3},
-		},
-		"dolor": dsl.PatternResult{
-			Val:            true,
-			SortedMatchPos: []int{1, 7},
-		},
+	matches := map[string][]int{
+		"foo":   {0, 2, 5},
+		"bar":   {3},
+		"dolor": {1, 7},
 	}
 
-	responseRecursive, err := expression.Solve(matches, false)
+	responseRecursive, err := expression.Solve(matches)
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println("recursive eval ", responseRecursive)
 
 	solverArr := expression.CreateSolverOrder()
-	responseIter, err := solverArr.Solve(matches, false)
+	responseIter, err := solverArr.Solve(matches)
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println("iterative eval ", responseIter)
 
 	// should return an error
-	_, err = expression.Solve(matches, true)
+	_, err = expression.Solve(matches)
 	if err != nil {
 		log.Fatal(err)
 	}
