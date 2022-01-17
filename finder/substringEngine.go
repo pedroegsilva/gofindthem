@@ -28,14 +28,19 @@ type AnknownEngine struct {
 func (am *AnknownEngine) BuildEngine(keywords map[string]struct{}, caseSensitive bool) (err error) {
 	dict := [][]rune{}
 	for key := range keywords {
+		if key == "" {
+			continue
+		}
 		dict = append(dict, []rune(key))
 	}
 	ahoMachine := new(goahocorasick.Machine)
+
 	err = ahoMachine.Build(dict)
 	if err != nil {
 		return
 	}
 	am.AhoEngine = ahoMachine
+
 	return
 }
 

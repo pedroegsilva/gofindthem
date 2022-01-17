@@ -71,9 +71,15 @@ func BenchmarkIncresingTextSize(b *testing.B) {
 	}
 }
 
-func BenchmarkIncresingTermsCount(b *testing.B) {
+func BenchmarkIncresingTermsCountGeneral(b *testing.B) {
 	for _, step := range []int{10, 100, 1000} {
-		BMIncresingTermsCount(b, step)
+		BMIncresingTermsCountGeneral(b, step)
+	}
+}
+
+func BenchmarkIncresingTermsCountInorder(b *testing.B) {
+	for _, step := range []int{10, 100, 1000} {
+		BMIncresingTermsCountInord(b, step)
 	}
 }
 
@@ -83,17 +89,17 @@ func BMIncresingTextSize(b *testing.B, step int) {
 		expressions1 := []string{
 			`"foo" and "bar"`,
 		}
-		BMDslSearch(fmt.Sprintf("TextDSL_%d", i), expressions1, &finder.PetarDambovalievEngine{}, text, b)
+		BMDslSearch(fmt.Sprintf("TextDSL_%d", i), expressions1, &finder.AnknownEngine{}, text, b)
 
 		expressions2 := []string{
 			`r"foo.*bar" and r"bar.*foo"`,
 		}
-		BMDslSearch(fmt.Sprintf("TextDSLRegex_%d", i), expressions2, &finder.PetarDambovalievEngine{}, text, b)
+		BMDslSearch(fmt.Sprintf("TextDSLRegex_%d", i), expressions2, &finder.AnknownEngine{}, text, b)
 
 		expressions3 := []string{
 			`INORD("foo" and "bar") and INORD("bar" and "foo")`,
 		}
-		BMDslSearch(fmt.Sprintf("TextDSLInord_%d", i), expressions3, &finder.PetarDambovalievEngine{}, text, b)
+		BMDslSearch(fmt.Sprintf("TextDSLInord_%d", i), expressions3, &finder.AnknownEngine{}, text, b)
 
 		regexes := []string{
 			"foo.*bar",
@@ -103,19 +109,33 @@ func BMIncresingTextSize(b *testing.B, step int) {
 	}
 }
 
-func BMIncresingTermsCount(b *testing.B, step int) {
+func BMIncresingTermsCountGeneral(b *testing.B, step int) {
 	for i := step; i <= step*10; i = i + step {
 		text := createText(10)
 		terms := getTerms(i)
-		regexes, andExps, inordExps, rgxExps := createExpressions(terms)
+		regexes, andExps, inordExps, rgxExps := createExpressionsGeneral(terms)
 
-		BMDslSearch(fmt.Sprintf("TermsDSL_%d", i), andExps, &finder.PetarDambovalievEngine{}, text, b)
+		BMDslSearch(fmt.Sprintf("SingleTermDsl_%d", i), andExps, &finder.CloudflareEngine{}, text, b)
 
-		BMDslSearch(fmt.Sprintf("TermsDSLRegex_%d", i), rgxExps, &finder.PetarDambovalievEngine{}, text, b)
+		BMDslSearch(fmt.Sprintf("SingleRegexDSL_%d", i), rgxExps, &finder.CloudflareEngine{}, text, b)
 
-		BMDslSearch(fmt.Sprintf("TermsDSLInord_%d", i), inordExps, &finder.PetarDambovalievEngine{}, text, b)
+		BMDslSearch(fmt.Sprintf("SingleTermDslInord_%d", i), inordExps, &finder.CloudflareEngine{}, text, b)
 
-		BMUseCasesRegexOnly(fmt.Sprintf("TermsRegex_%d", i), text, regexes, b)
+		BMUseCasesRegexOnly(fmt.Sprintf("OnlyRegex_%d", i), text, regexes, b)
+	}
+}
+
+func BMIncresingTermsCountInord(b *testing.B, step int) {
+	for i := step; i <= step*10; i = i + step {
+		text := createText(10)
+		terms := getTerms(i)
+		regexes, inordExps, rgxExps := createExpressionsWithOrder(terms)
+
+		BMDslSearch(fmt.Sprintf("OrderDSLWithRegex_%d", i), rgxExps, &finder.PetarDambovalievEngine{}, text, b)
+
+		BMDslSearch(fmt.Sprintf("OrderDSLInord_%d", i), inordExps, &finder.PetarDambovalievEngine{}, text, b)
+
+		BMUseCasesRegexOnly(fmt.Sprintf("OrderWithRegex_%d", i), text, regexes, b)
 	}
 }
 
@@ -124,12 +144,15 @@ func BMUseCasesRegexOnly(name string, text string, regexestr []string, b *testin
 	for _, rgxstr := range regexestr {
 		regex = append(regex, regexp.MustCompile(rgxstr))
 	}
-
+	var positionsArr [][]int
 	b.ResetTimer()
 	b.Run(name, func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			for _, r := range regex {
-				r.FindAllStringIndex(text, -1)
+				positions := r.FindAllStringIndex(text, -1)
+				for _, pos := range positions {
+					positionsArr = append(positionsArr, pos)
+				}
 			}
 		}
 	})
@@ -159,16 +182,27 @@ func getTerms(numTerm int) []string {
 	return terms
 }
 
-func createExpressions(terms []string) (regexes []string, andExps []string, inordExps []string, rgxExps []string) {
+func createExpressionsGeneral(terms []string) (regexes []string, andExps []string, inordExps []string, rgxExps []string) {
+	for i := 0; i < len(terms); {
+		term := terms[i]
+		i++
+		regexes = append(regexes, term)
+		andExps = append(andExps, fmt.Sprintf("\"%s\"", term))
+		inordExps = append(inordExps, fmt.Sprintf("inord(\"%s\")", term))
+		rgxExps = append(rgxExps, fmt.Sprintf("r\"%s\"", term))
+	}
+	return
+}
+
+func createExpressionsWithOrder(terms []string) (regexes []string, inordExps []string, rgxExps []string) {
 	for i := 0; i < len(terms); {
 		firstTerm := terms[i]
 		i++
 		secondTerm := terms[i]
 		i++
 		regexes = append(regexes, fmt.Sprintf("%s.*%s", firstTerm, secondTerm))
-		andExps = append(andExps, fmt.Sprintf("\"%s\" and \"%s\"", firstTerm, secondTerm))
 		inordExps = append(inordExps, fmt.Sprintf("inord(\"%s\" and \"%s\")", firstTerm, secondTerm))
-		rgxExps = append(rgxExps, fmt.Sprintf("r\"%s\" and r\"%s\"", firstTerm, secondTerm))
+		rgxExps = append(rgxExps, fmt.Sprintf("r\"%s.*%s\"", firstTerm, secondTerm))
 	}
 	return
 }

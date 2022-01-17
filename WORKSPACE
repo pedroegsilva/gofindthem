@@ -12,8 +12,8 @@ http_archive(
 
 git_repository(
     name = "bazel_gazelle",
-    remote = "https://github.com/bazelbuild/bazel-gazelle",
     commit = "9f72eed9f79bfc18a04e8ac6204751998c7cba4a",
+    remote = "https://github.com/bazelbuild/bazel-gazelle",
     shallow_since = "1625010873 -0600",
 )
 

@@ -1,7 +1,6 @@
 package finder
 
 import (
-	"fmt"
 	"regexp"
 )
 
@@ -38,7 +37,7 @@ func (re *RegexpEngine) FindRegexes(text string) (matches []*Match, err error) {
 		positions := rgx.FindAllStringIndex(text, -1)
 		for _, pos := range positions {
 			matches = append(matches, &Match{
-				Term:     fmt.Sprintf("%v", rgx),
+				Term:     rgx.String(),
 				Position: pos[0],
 			})
 		}

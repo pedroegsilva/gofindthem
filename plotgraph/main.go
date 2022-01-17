@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	BENCH_FILE = "./plotgraph/files/benchmark3.txt"
+	BENCH_FILE = "./plotgraph/files/expIncreaseGeneralCloudFlare.txt"
 )
 
 func main() {
@@ -64,7 +64,7 @@ func main() {
 		name := strings.Join(groupSplit[:len(groupSplit)-1], "_")
 		flNum, _ := strconv.ParseFloat(num, 64)
 
-		if flNum >= 10 && flNum <= 100 {
+		if flNum >= 10 && flNum <= 10000 {
 			points[name] = append(points[name], plotter.XY{X: flNum, Y: b.NsPerOp})
 		}
 
@@ -80,7 +80,7 @@ func main() {
 	p.Legend.Top = true
 	p.Legend.Left = true
 
-	if err := p.Save(8*vg.Inch, 8*vg.Inch, "/home/pedroegs/points11.png"); err != nil {
+	if err := p.Save(8*vg.Inch, 8*vg.Inch, "/home/pedroegs/expIncreaseGeneralCloudFlareGraph_full.png"); err != nil {
 		panic(err)
 	}
 
