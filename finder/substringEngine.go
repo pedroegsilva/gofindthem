@@ -100,7 +100,7 @@ func (pdm *PetarDambovalievEngine) BuildEngine(keywords map[string]struct{}, cas
 	}
 	builder := pdahocorasick.NewAhoCorasickBuilder(pdahocorasick.Opts{
 		AsciiCaseInsensitive: !caseSensitive,
-		MatchOnlyWholeWords:  false,
+		MatchOnlyWholeWords:  true,
 		MatchKind:            pdahocorasick.StandardMatch,
 		DFA:                  true,
 	})
