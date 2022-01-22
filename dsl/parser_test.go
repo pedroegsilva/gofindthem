@@ -421,10 +421,10 @@ func TestParser(t *testing.T) {
 			message:          "inord operator fail inord without parentheses",
 		},
 		{
-			expStr:           `r and`,
+			expStr:           `r"regex" and`,
 			expectedExp:      Expression{},
 			expectedKeywords: map[string]struct{}{},
-			expectedErr:      fmt.Errorf("invalid expression: REGEX operator must be followed by KEYWORD but found 'AND'"),
+			expectedErr:      fmt.Errorf("invalid expression: incomplete expression AND"),
 			caseSense:        true,
 			message:          "regex operator fail invalid next token",
 		},
