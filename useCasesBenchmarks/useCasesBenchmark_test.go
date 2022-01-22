@@ -159,7 +159,7 @@ func BMUseCasesRegexOnly(name string, text string, regexestr []string, b *testin
 }
 
 func BMDslSearch(name string, exps []string, subEng finder.SubstringEngine, text string, b *testing.B) {
-	findthem := finder.NewFinder(subEng, &finder.RegexpEngine{}, false)
+	findthem := finder.NewFinder(subEng, &finder.RegexpEngine{}, true)
 	for _, exp := range exps {
 		findthem.AddExpression(exp)
 	}

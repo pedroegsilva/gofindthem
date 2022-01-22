@@ -440,9 +440,9 @@ func BMPetarDambovalievSearch(exps []string, b *testing.B) {
 
 	builder := pdahocorasick.NewAhoCorasickBuilder(pdahocorasick.Opts{
 		AsciiCaseInsensitive: true,
-		MatchOnlyWholeWords:  false,
+		MatchOnlyWholeWords:  true,
 		MatchKind:            pdahocorasick.LeftMostLongestMatch,
-		DFA:                  true,
+		DFA:                  false,
 	})
 	bld := builder.Build(dict)
 	for i := 0; i < b.N; i++ {

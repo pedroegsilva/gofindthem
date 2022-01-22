@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	BENCH_FILE = "./plotgraph/files/expIncreaseGeneralCloudFlare.txt"
+	BENCH_FILE = "./plotgraph/files/expIncreaseGeneralCloudFlare2.txt"
 )
 
 func main() {
@@ -80,7 +80,7 @@ func main() {
 	p.Legend.Top = true
 	p.Legend.Left = true
 
-	if err := p.Save(8*vg.Inch, 8*vg.Inch, "/home/pedroegs/expIncreaseGeneralCloudFlareGraph_full.png"); err != nil {
+	if err := p.Save(8*vg.Inch, 8*vg.Inch, "/home/pedroegs/expIncreaseGeneralCloudFlareGraph2_full.png"); err != nil {
 		panic(err)
 	}
 
