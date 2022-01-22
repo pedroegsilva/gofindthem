@@ -31,13 +31,6 @@ def go_dependencies():
         sum = "h1:N5egH9vhDB1eGp00uZmi8OFzb3cFrE9dG5MfrjRKcGc=",
         version = "v0.1.0",
     )
-
-    go_repository(
-        name = "com_github_petar_dambovaliev_aho_corasick",
-        importpath = "github.com/petar-dambovaliev/aho-corasick",
-        sum = "h1:WuXe30Ig5zUIYEHyzsLMBFPP5l0yRQ5IiZScODHwy8g=",
-        version = "v0.0.0-20210512121028-af76a9ff7276",
-    )
     go_repository(
         name = "com_github_pmezard_go_difflib",
         importpath = "github.com/pmezard/go-difflib",
