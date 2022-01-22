@@ -3,7 +3,7 @@ package finder
 import (
 	goahocorasick "github.com/anknown/ahocorasick"
 	cfahocorasick "github.com/cloudflare/ahocorasick"
-	pdahocorasick "github.com/petar-dambovaliev/aho-corasick"
+	forkahocorasick "github.com/pedroegsilva/ahocorasick/ahocorasick"
 )
 
 // SubstringEngine interface that finder
@@ -85,38 +85,34 @@ func (cfm *CloudflareEngine) FindSubstrings(text string) (matches []*Match, err 
 	return
 }
 
-// PetarDambovalievEngine implements SubstringEngine using the
-// github.com/petar-dambovaliev/aho-corasick package
-type PetarDambovalievEngine struct {
-	AhoEngine pdahocorasick.AhoCorasick
+// CloudflareEngine implements SubstringEngine using the
+// github.com/pedroegsilva/ahocorasick package. This engine
+// does not support the use of INORD operator
+type CloudflareForkEngine struct {
+	Matcher *forkahocorasick.Matcher
+	Dict    []string
 }
 
 // BuildEngine implements BuildEngine using the
-// github.com/petar-dambovaliev/aho-corasick package
-func (pdm *PetarDambovalievEngine) BuildEngine(keywords map[string]struct{}, caseSensitive bool) (err error) {
-	dict := make([]string, 0, len(keywords))
+// github.com/cloudflare/ahocorasick package
+func (cffm *CloudflareForkEngine) BuildEngine(keywords map[string]struct{}, caseSensitive bool) (err error) {
+	dict := []string{}
 	for key := range keywords {
 		dict = append(dict, key)
 	}
-	builder := pdahocorasick.NewAhoCorasickBuilder(pdahocorasick.Opts{
-		AsciiCaseInsensitive: !caseSensitive,
-		MatchOnlyWholeWords:  true,
-		MatchKind:            pdahocorasick.StandardMatch,
-		DFA:                  true,
-	})
-
-	pdm.AhoEngine = builder.Build(dict)
+	cffm.Matcher = forkahocorasick.NewStringMatcher(dict)
+	cffm.Dict = dict
 	return
 }
 
 // FindSubstrings implements FindSubstrings using the
-// github.com/petar-dambovaliev/aho-corasick package
-func (pdm *PetarDambovalievEngine) FindSubstrings(text string) (matches []*Match, err error) {
-	ms := pdm.AhoEngine.FindAll(text)
-	for _, m := range ms {
+// github.com/cloudflare/ahocorasick package
+func (cffm *CloudflareForkEngine) FindSubstrings(text string) (matches []*Match, err error) {
+	ms := cffm.Matcher.MatchAll([]byte(text))
+	for _, hit := range ms {
 		matches = append(matches, &Match{
-			Term:     text[m.Start():m.End()],
-			Position: m.Start(),
+			Term:     cffm.Dict[hit.DictIndex],
+			Position: hit.Position,
 		})
 	}
 	return

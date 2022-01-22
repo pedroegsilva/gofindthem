@@ -9,6 +9,7 @@ go_test(
         "//finder",
         "@com_github_anknown_ahocorasick//:ahocorasick",
         "@com_github_cloudflare_ahocorasick//:ahocorasick",
+        "@com_github_pedroegsilva_ahocorasick//ahocorasick",
         "@com_github_petar_dambovaliev_aho_corasick//:aho-corasick",
     ],
 )

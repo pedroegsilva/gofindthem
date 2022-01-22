@@ -35,7 +35,7 @@ https://github.com/anknown/ahocorasick and
 https://github.com/petar-dambovaliev/aho-corasick and a regexp implementation for the `RegexEngine`. 
 But any other library can be used as long as it "implements" the `SubstringEngine` or `RegexEngine` interface.
 ```go
-    subEng := &finder.PetarDambovalievEngine{}
+    subEng := &finder.CloudflareForkEngine{}
     rgxEng := &finder.RegexpEngine{}
     caseSensitive := true
     findthem := finder.NewFinder(subEng, rgxEng, caseSensitive)

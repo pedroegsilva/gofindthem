@@ -19,7 +19,7 @@ Mauris feugiat vitae eros et facilisis.
 Donec facilisis mattis dignissim.`,
 	}
 
-	subEng := &finder.PetarDambovalievEngine{}
+	subEng := &finder.CloudflareForkEngine{}
 	rgxEng := &finder.RegexpEngine{}
 	caseSensitive := true
 	findthem := finder.NewFinder(subEng, rgxEng, caseSensitive)
@@ -55,7 +55,7 @@ Donec facilisis mattis dignissim.`,
 		}
 	}
 
-	subEng2 := &finder.PetarDambovalievEngine{}
+	subEng2 := &finder.CloudflareForkEngine{}
 	rgxEng2 := &finder.RegexpEngine{}
 	findthem2 := finder.NewFinder(subEng2, rgxEng2, !caseSensitive)
 
