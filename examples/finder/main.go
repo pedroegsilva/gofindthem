@@ -51,7 +51,7 @@ Donec facilisis mattis dignissim.`,
 		}
 		fmt.Printf("----------Text %d case sensitive-----------\n", i)
 		for _, expRes := range resp {
-			fmt.Printf("exp: [%s]%s | %v\n", expRes.Tag, expRes.ExpresionStr, expRes.Evaluation)
+			fmt.Printf("exp %d: [%s]%s\n", expRes.ExpresionIndex, expRes.Tag, expRes.ExpresionStr)
 		}
 	}
 
@@ -74,7 +74,7 @@ Donec facilisis mattis dignissim.`,
 		}
 		fmt.Printf("----------Text %d case insensitive-----------\n", i)
 		for _, expRes := range resp {
-			fmt.Printf("exp: [%s]%s | %v\n", expRes.Tag, expRes.ExpresionStr, expRes.Evaluation)
+			fmt.Printf("exp %d: [%s]%s\n", expRes.ExpresionIndex, expRes.Tag, expRes.ExpresionStr)
 		}
 	}
 }

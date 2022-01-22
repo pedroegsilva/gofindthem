@@ -286,12 +286,12 @@ func TestProcessText(t *testing.T) {
 			findRgxMockRet:     FindMockRet{matches2, nil},
 			expectedExpRes: []ExpressionResult{
 				{
-					Evaluation:   true,
-					ExpresionStr: `"sharpest"`,
+					ExpresionStr:   `"sharpest"`,
+					ExpresionIndex: 0,
 				},
 				{
-					Evaluation:   true,
-					ExpresionStr: `r"words"`,
+					ExpresionStr:   `r"words"`,
+					ExpresionIndex: 1,
 				},
 			},
 			expectedErr: nil,
@@ -333,15 +333,11 @@ func TestProcessText(t *testing.T) {
 			buildSubEngMockRet: nil,
 			buildRgxEngMockRet: nil,
 			findSubMockRet:     FindMockRet{emptyMatches, nil},
-			findRgxMockRet:     FindMockRet{emptyMatches, nil},
+			findRgxMockRet:     FindMockRet{matches2, nil},
 			expectedExpRes: []ExpressionResult{
 				{
-					Evaluation:   false,
-					ExpresionStr: `"sharpest"`,
-				},
-				{
-					Evaluation:   false,
-					ExpresionStr: `r"words"`,
+					ExpresionStr:   `r"words"`,
+					ExpresionIndex: 1,
 				},
 			},
 			expectedErr: nil,
@@ -555,12 +551,8 @@ func TestSolveExpressions(t *testing.T) {
 			},
 			expectedExpRes: []ExpressionResult{
 				{
-					Evaluation:   true,
-					ExpresionStr: `"sharpest" and "words"`,
-				},
-				{
-					Evaluation:   false,
-					ExpresionStr: `"no one" or "Can get in the way"`,
+					ExpresionIndex: 0,
+					ExpresionStr:   `"sharpest" and "words"`,
 				},
 			},
 			expectedErr: nil,
@@ -573,34 +565,21 @@ func TestSolveExpressions(t *testing.T) {
 			},
 			expectedExpRes: []ExpressionResult{
 				{
-					Evaluation:   false,
-					ExpresionStr: `"sharpest" and "words"`,
-				},
-				{
-					Evaluation:   true,
-					ExpresionStr: `"no one" or "Can get in the way"`,
+					ExpresionIndex: 1,
+					ExpresionStr:   `"no one" or "Can get in the way"`,
 				},
 			},
 			expectedErr: nil,
-			message:     "first exp true",
+			message:     "second exp true",
 		},
 		{
 			finder: finder,
 			sortedMatchesByKeyword: map[string][]int{
 				"words": {},
 			},
-			expectedExpRes: []ExpressionResult{
-				{
-					Evaluation:   false,
-					ExpresionStr: `"sharpest" and "words"`,
-				},
-				{
-					Evaluation:   false,
-					ExpresionStr: `"no one" or "Can get in the way"`,
-				},
-			},
-			expectedErr: nil,
-			message:     "both false",
+			expectedExpRes: []ExpressionResult{},
+			expectedErr:    nil,
+			message:        "both false",
 		},
 		{
 			finder: finder,
@@ -611,12 +590,12 @@ func TestSolveExpressions(t *testing.T) {
 			},
 			expectedExpRes: []ExpressionResult{
 				{
-					Evaluation:   true,
-					ExpresionStr: `"sharpest" and "words"`,
+					ExpresionIndex: 0,
+					ExpresionStr:   `"sharpest" and "words"`,
 				},
 				{
-					Evaluation:   true,
-					ExpresionStr: `"no one" or "Can get in the way"`,
+					ExpresionIndex: 1,
+					ExpresionStr:   `"no one" or "Can get in the way"`,
 				},
 			},
 			expectedErr: nil,
