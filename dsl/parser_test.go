@@ -26,7 +26,7 @@ func TestParser(t *testing.T) {
 				Literal: "1",
 			},
 			expectedKeywords: map[string]struct{}{
-				"1": struct{}{},
+				"1": {},
 			},
 			expectedRegexes: map[string]struct{}{},
 			expectedErr:     nil,
@@ -40,7 +40,7 @@ func TestParser(t *testing.T) {
 				Literal: "1",
 			},
 			expectedKeywords: map[string]struct{}{
-				"1": struct{}{},
+				"1": {},
 			},
 			expectedRegexes: map[string]struct{}{},
 			expectedErr:     nil,
@@ -55,7 +55,7 @@ func TestParser(t *testing.T) {
 			},
 			expectedKeywords: map[string]struct{}{},
 			expectedRegexes: map[string]struct{}{
-				"1": struct{}{},
+				"1": {},
 			},
 			expectedErr: nil,
 			caseSense:   true,
@@ -75,10 +75,10 @@ func TestParser(t *testing.T) {
 				},
 			},
 			expectedKeywords: map[string]struct{}{
-				"1": struct{}{},
+				"1": {},
 			},
 			expectedRegexes: map[string]struct{}{
-				"2": struct{}{},
+				"2": {},
 			},
 			expectedErr: nil,
 			caseSense:   true,
@@ -98,8 +98,8 @@ func TestParser(t *testing.T) {
 				},
 			},
 			expectedKeywords: map[string]struct{}{
-				"1": struct{}{},
-				"2": struct{}{},
+				"1": {},
+				"2": {},
 			},
 			expectedRegexes: map[string]struct{}{},
 			expectedErr:     nil,
@@ -120,8 +120,8 @@ func TestParser(t *testing.T) {
 				},
 			},
 			expectedKeywords: map[string]struct{}{
-				"1": struct{}{},
-				"2": struct{}{},
+				"1": {},
+				"2": {},
 			},
 			expectedRegexes: map[string]struct{}{},
 			expectedErr:     nil,
@@ -138,7 +138,7 @@ func TestParser(t *testing.T) {
 				},
 			},
 			expectedKeywords: map[string]struct{}{
-				"1": struct{}{},
+				"1": {},
 			},
 			expectedRegexes: map[string]struct{}{},
 			expectedErr:     nil,
@@ -156,7 +156,7 @@ func TestParser(t *testing.T) {
 			},
 			expectedKeywords: map[string]struct{}{},
 			expectedRegexes: map[string]struct{}{
-				"1": struct{}{},
+				"1": {},
 			},
 			expectedErr: nil,
 			caseSense:   true,
@@ -186,9 +186,9 @@ func TestParser(t *testing.T) {
 				},
 			},
 			expectedKeywords: map[string]struct{}{
-				"1": struct{}{},
-				"2": struct{}{},
-				"3": struct{}{},
+				"1": {},
+				"2": {},
+				"3": {},
 			},
 			expectedRegexes: map[string]struct{}{},
 			expectedErr:     nil,
@@ -219,9 +219,9 @@ func TestParser(t *testing.T) {
 				},
 			},
 			expectedKeywords: map[string]struct{}{
-				"1": struct{}{},
-				"2": struct{}{},
-				"3": struct{}{},
+				"1": {},
+				"2": {},
+				"3": {},
 			},
 			expectedRegexes: map[string]struct{}{},
 			expectedErr:     nil,
@@ -252,11 +252,11 @@ func TestParser(t *testing.T) {
 				},
 			},
 			expectedKeywords: map[string]struct{}{
-				"1": struct{}{},
-				"3": struct{}{},
+				"1": {},
+				"3": {},
 			},
 			expectedRegexes: map[string]struct{}{
-				"2": struct{}{},
+				"2": {},
 			},
 			expectedErr: nil,
 			caseSense:   true,
@@ -348,10 +348,10 @@ func TestParser(t *testing.T) {
 				},
 			},
 			expectedKeywords: map[string]struct{}{
-				"something": struct{}{},
+				"something": {},
 			},
 			expectedRegexes: map[string]struct{}{
-				"case in sensitive": struct{}{},
+				"case in sensitive": {},
 			},
 			expectedErr: nil,
 			caseSense:   false,
@@ -384,11 +384,11 @@ func TestParser(t *testing.T) {
 				},
 			},
 			expectedKeywords: map[string]struct{}{
-				"1": struct{}{},
-				"3": struct{}{},
+				"1": {},
+				"3": {},
 			},
 			expectedRegexes: map[string]struct{}{
-				"2": struct{}{},
+				"2": {},
 			},
 			expectedErr: nil,
 			caseSense:   true,

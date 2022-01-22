@@ -102,7 +102,7 @@ func (s *Scanner) Scan() (tok Token, lit string, err error) {
 		return EOF, "", nil
 	}
 
-	return ILLEGAL, "", fmt.Errorf("Illegal char was found %c", ch)
+	return ILLEGAL, "", fmt.Errorf("illegal char was found %c", ch)
 }
 
 // scanWhitespace consumes the current rune and all contiguous whitespace.
