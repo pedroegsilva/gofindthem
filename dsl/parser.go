@@ -75,7 +75,7 @@ func (p *Parser) parse() (*Expression, error) {
 				exp.RExpr = newExp
 			}
 
-		case KEYWORD:
+		case KEYWORD, REGEX:
 			if !p.casesesitive {
 				lit = strings.ToLower(lit)
 			}
@@ -90,7 +90,10 @@ func (p *Parser) parse() (*Expression, error) {
 				exp.RExpr = keyExp
 			}
 
-			p.addLiteralToSet(lit)
+			err = p.addLiteralToSet(tok, lit)
+			if err != nil {
+				return exp, err
+			}
 
 		case AND:
 			exp, err = p.handleDualOp(exp, AND_EXPR)
@@ -118,21 +121,7 @@ func (p *Parser) parse() (*Expression, error) {
 			}
 
 			switch nextTok {
-			case REGEX:
-				nt, nl, err := p.scanIgnoreWhitespace()
-				if err != nil {
-					return exp, err
-				}
-				if nt != KEYWORD {
-					return exp, fmt.Errorf(
-						"invalid expression: REGEX operator must be followed by KEYWORD but found '%s'",
-						nextTok.getName(),
-					)
-				}
-				nextLit = nl
-				p.regex = true
-				fallthrough
-			case KEYWORD:
+			case KEYWORD, REGEX:
 				if !p.casesesitive {
 					nextLit = strings.ToLower(nextLit)
 				}
@@ -140,7 +129,10 @@ func (p *Parser) parse() (*Expression, error) {
 					Type:    UNIT_EXPR,
 					Literal: nextLit,
 				}
-				p.addLiteralToSet(nextLit)
+				err = p.addLiteralToSet(nextTok, nextLit)
+				if err != nil {
+					return exp, err
+				}
 
 			case OPPAR:
 				newExp, err := p.handleOpenPar()
@@ -157,20 +149,6 @@ func (p *Parser) parse() (*Expression, error) {
 			} else {
 				exp.RExpr = notExp
 			}
-
-		case REGEX:
-			nextTok, _, err := p.scanIgnoreWhitespace()
-			if err != nil {
-				return exp, err
-			}
-			if nextTok != KEYWORD {
-				return exp, fmt.Errorf(
-					"invalid expression: REGEX operator must be followed by KEYWORD but found '%s'",
-					nextTok.getName(),
-				)
-			}
-			p.regex = true
-			p.unscan()
 
 		case INORD:
 			if p.inord {
@@ -324,11 +302,14 @@ func (p *Parser) handleOpenPar() (*Expression, error) {
 }
 
 // addLiteralToMap adds the literal to the correct set of terms
-func (p *Parser) addLiteralToSet(lit string) {
-	if p.regex {
+func (p *Parser) addLiteralToSet(tok Token, lit string) error {
+	switch tok {
+	case REGEX:
 		p.regexes[lit] = struct{}{}
-		p.regex = false
-	} else {
+	case KEYWORD:
 		p.keywords[lit] = struct{}{}
+	default:
+		return fmt.Errorf("expected REGEX or KEYWORD tokens type to add literal to set but received: %s", tok.getName())
 	}
+	return nil
 }

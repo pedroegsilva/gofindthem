@@ -22,7 +22,7 @@ func TestScanner(t *testing.T) {
 		message  string
 	}{
 		{
-			expStr: `and   or   not  "keyword 1"  (   ) inord r`,
+			expStr: `and   or   not  "keyword 1"  (   ) inord r"regex1"`,
 			expected: []expectedAtScan{
 				{Tok: AND, Lit: "and", Err: nil},
 				{Tok: WS, Lit: "   ", Err: nil},
@@ -38,7 +38,7 @@ func TestScanner(t *testing.T) {
 				{Tok: WS, Lit: " ", Err: nil},
 				{Tok: INORD, Lit: "inord", Err: nil},
 				{Tok: WS, Lit: " ", Err: nil},
-				{Tok: REGEX, Lit: "r", Err: nil},
+				{Tok: REGEX, Lit: "regex1", Err: nil},
 				{Tok: EOF, Lit: "", Err: nil},
 			},
 			message: "all tokens",
@@ -96,7 +96,7 @@ func TestScanner(t *testing.T) {
 				{
 					Tok: ILLEGAL,
 					Lit: "",
-					Err: fmt.Errorf("Illegal char was found 1"),
+					Err: fmt.Errorf("illegal char was found 1"),
 				},
 			},
 			message: "invalid scaped keyword",
