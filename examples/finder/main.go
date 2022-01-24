@@ -19,7 +19,7 @@ Mauris feugiat vitae eros et facilisis.
 Donec facilisis mattis dignissim.`,
 	}
 
-	subEng := &finder.PetarDambovalievEngine{}
+	subEng := &finder.CloudflareForkEngine{}
 	rgxEng := &finder.RegexpEngine{}
 	caseSensitive := true
 	findthem := finder.NewFinder(subEng, rgxEng, caseSensitive)
@@ -51,11 +51,11 @@ Donec facilisis mattis dignissim.`,
 		}
 		fmt.Printf("----------Text %d case sensitive-----------\n", i)
 		for _, expRes := range resp {
-			fmt.Printf("exp: [%s]%s | %v\n", expRes.Tag, expRes.ExpresionStr, expRes.Evaluation)
+			fmt.Printf("exp %d: [%s]%s\n", expRes.ExpresionIndex, expRes.Tag, expRes.ExpresionStr)
 		}
 	}
 
-	subEng2 := &finder.PetarDambovalievEngine{}
+	subEng2 := &finder.CloudflareForkEngine{}
 	rgxEng2 := &finder.RegexpEngine{}
 	findthem2 := finder.NewFinder(subEng2, rgxEng2, !caseSensitive)
 
@@ -74,7 +74,7 @@ Donec facilisis mattis dignissim.`,
 		}
 		fmt.Printf("----------Text %d case insensitive-----------\n", i)
 		for _, expRes := range resp {
-			fmt.Printf("exp: [%s]%s | %v\n", expRes.Tag, expRes.ExpresionStr, expRes.Evaluation)
+			fmt.Printf("exp %d: [%s]%s\n", expRes.ExpresionIndex, expRes.Tag, expRes.ExpresionStr)
 		}
 	}
 }

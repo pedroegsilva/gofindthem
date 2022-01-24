@@ -14,9 +14,9 @@ import (
 
 	akahocorasick "github.com/anknown/ahocorasick"
 	cfahocorasick "github.com/cloudflare/ahocorasick"
+	forkahocorasick "github.com/pedroegsilva/ahocorasick/ahocorasick"
 	"github.com/pedroegsilva/gofindthem/dsl"
 	"github.com/pedroegsilva/gofindthem/finder"
-	pdahocorasick "github.com/petar-dambovaliev/aho-corasick"
 )
 
 func init() {
@@ -113,8 +113,8 @@ func BenchmarkAhocorasickAnknownBuild100(b *testing.B) {
 	BMAnknownBuild(exp100, b)
 }
 
-func BenchmarkAhocorasickPetarDambovalievBuild100(b *testing.B) {
-	BMPetarDambovalievBuild(exp100, b)
+func BenchmarkAhocorasickCloudflareForkBuild100(b *testing.B) {
+	BMCloudflareForkBuild(exp100, b)
 }
 
 func BenchmarkAhocorasickCloudFlareSearch100(b *testing.B) {
@@ -133,12 +133,12 @@ func BenchmarkDslWithAnknown100(b *testing.B) {
 	BMDslSearch([]string{exp100}, &finder.AnknownEngine{}, b)
 }
 
-func BenchmarkAhocorasickPetarDambovalievSearch100(b *testing.B) {
-	BMPetarDambovalievSearch([]string{exp100}, b)
+func BenchmarkAhocorasickCloudflareForkSearch100(b *testing.B) {
+	BMCloudflareForkSearch([]string{exp100}, b)
 }
 
-func BenchmarkDslWithPetarDambovaliev100(b *testing.B) {
-	BMDslSearch([]string{exp100}, &finder.PetarDambovalievEngine{}, b)
+func BenchmarkDslWithCloudflareFork100(b *testing.B) {
+	BMDslSearch([]string{exp100}, &finder.CloudflareForkEngine{}, b)
 }
 
 // 10000 terms
@@ -171,8 +171,8 @@ func BenchmarkAhocorasickAnknownBuild10000(b *testing.B) {
 	BMAnknownBuild(exp10000, b)
 }
 
-func BenchmarkAhocorasickPetarDambovalievBuild10000(b *testing.B) {
-	BMPetarDambovalievBuild(exp10000, b)
+func BenchmarkAhocorasickCloudflareForkBuild10000(b *testing.B) {
+	BMCloudflareForkBuild(exp10000, b)
 }
 
 func BenchmarkAhocorasickCloudFlareSearch10000(b *testing.B) {
@@ -191,12 +191,12 @@ func BenchmarkDslWithAnknown10000(b *testing.B) {
 	BMDslSearch([]string{exp10000}, &finder.AnknownEngine{}, b)
 }
 
-func BenchmarkAhocorasickPetarDambovalievSearch10000(b *testing.B) {
-	BMPetarDambovalievSearch([]string{exp10000}, b)
+func BenchmarkAhocorasickCloudflareForkSearch10000(b *testing.B) {
+	BMCloudflareForkSearch([]string{exp10000}, b)
 }
 
-func BenchmarkDslWithPetarDambovaliev10000(b *testing.B) {
-	BMDslSearch([]string{exp10000}, &finder.PetarDambovalievEngine{}, b)
+func BenchmarkDslWithCloudflareFork10000(b *testing.B) {
+	BMDslSearch([]string{exp10000}, &finder.CloudflareForkEngine{}, b)
 }
 
 // dsl specific
@@ -220,12 +220,12 @@ func BenchmarkDslWithAnknown10Exps(b *testing.B) {
 	BMDslSearch(exps10, &finder.AnknownEngine{}, b)
 }
 
-func BenchmarkOnlyPetarDambovaliev10Exps(b *testing.B) {
-	BMPetarDambovalievSearch(exps10, b)
+func BenchmarkOnlyCloudflareFork10Exps(b *testing.B) {
+	BMCloudflareForkSearch(exps10, b)
 }
 
-func BenchmarkDslWithPetarDambovaliev10Exps(b *testing.B) {
-	BMDslSearch(exps10, &finder.PetarDambovalievEngine{}, b)
+func BenchmarkDslWithCloudflareFork10Exps(b *testing.B) {
+	BMDslSearch(exps10, &finder.CloudflareForkEngine{}, b)
 }
 
 func BenchmarkDslWithEmptyEngine100Exps(b *testing.B) {
@@ -248,12 +248,12 @@ func BenchmarkDslWithAnknown100Exps(b *testing.B) {
 	BMDslSearch(exps100, &finder.AnknownEngine{}, b)
 }
 
-func BenchmarkOnlyPetarDambovaliev100Exps(b *testing.B) {
-	BMPetarDambovalievSearch(exps100, b)
+func BenchmarkOnlyCloudflareFork100Exps(b *testing.B) {
+	BMCloudflareForkSearch(exps100, b)
 }
 
-func BenchmarkDslWithPetarDambovaliev100Exps(b *testing.B) {
-	BMDslSearch(exps100, &finder.PetarDambovalievEngine{}, b)
+func BenchmarkDslWithCloudflareFork100Exps(b *testing.B) {
+	BMDslSearch(exps100, &finder.CloudflareForkEngine{}, b)
 }
 
 func BenchmarkDslWithEmptyEngine1000Exps(b *testing.B) {
@@ -276,33 +276,33 @@ func BenchmarkDslWithAnknown1000Exps(b *testing.B) {
 	BMDslSearch(exps1000, &finder.AnknownEngine{}, b)
 }
 
-func BenchmarkOnlyPetarDambovaliev1000Exps(b *testing.B) {
-	BMPetarDambovalievSearch(exps1000, b)
+func BenchmarkOnlyCloudflareFork1000Exps(b *testing.B) {
+	BMCloudflareForkSearch(exps1000, b)
 }
 
-func BenchmarkDslWithPetarDambovaliev1000Exps(b *testing.B) {
-	BMDslSearch(exps1000, &finder.PetarDambovalievEngine{}, b)
+func BenchmarkDslWithCloudflareFork1000Exps(b *testing.B) {
+	BMDslSearch(exps1000, &finder.CloudflareForkEngine{}, b)
 }
 
 func BenchmarkUseCasesDsl(b *testing.B) {
 	expressions := []string{
 		`"foo" and "bar"`,
 	}
-	BMDslSearch(expressions, &finder.PetarDambovalievEngine{}, b)
+	BMDslSearch(expressions, &finder.CloudflareForkEngine{}, b)
 }
 
 func BenchmarkUseCasesDslWithRegex(b *testing.B) {
 	expressions := []string{
 		`r"foo.*bar" and r"bar.*foo"`,
 	}
-	BMDslSearch(expressions, &finder.PetarDambovalievEngine{}, b)
+	BMDslSearch(expressions, &finder.CloudflareForkEngine{}, b)
 }
 
 func BenchmarkUseCasesDslWithInord(b *testing.B) {
 	expressions := []string{
 		`INORD("foo" and "bar") and INORD("bar" and "foo")`,
 	}
-	BMDslSearch(expressions, &finder.PetarDambovalievEngine{}, b)
+	BMDslSearch(expressions, &finder.CloudflareForkEngine{}, b)
 }
 
 func BenchmarkUseCasesRegexOnly(b *testing.B) {
@@ -367,23 +367,16 @@ func BMAnknownBuild(exp string, b *testing.B) {
 	}
 }
 
-func BMPetarDambovalievBuild(exp string, b *testing.B) {
-	p := dsl.NewParser(strings.NewReader(exp100), true)
+func BMCloudflareForkBuild(exp string, b *testing.B) {
+	p := dsl.NewParser(strings.NewReader(exp), true)
 	p.Parse()
-	dict := []string{}
-
+	dict := [][]byte{}
 	for key := range p.GetKeywords() {
-		dict = append(dict, key)
+		dict = append(dict, []byte(key))
 	}
 
 	for i := 0; i < b.N; i++ {
-		builder := pdahocorasick.NewAhoCorasickBuilder(pdahocorasick.Opts{
-			AsciiCaseInsensitive: true,
-			MatchOnlyWholeWords:  false,
-			MatchKind:            pdahocorasick.LeftMostLongestMatch,
-			DFA:                  true,
-		})
-		builder.Build(dict)
+		forkahocorasick.NewMatcher(dict)
 	}
 }
 
@@ -426,27 +419,22 @@ func BMAnknownSearch(exps []string, b *testing.B) {
 	}
 }
 
-func BMPetarDambovalievSearch(exps []string, b *testing.B) {
+func BMCloudflareForkSearch(exps []string, b *testing.B) {
 	findthem := finder.NewFinder(&finder.EmptyEngine{}, &finder.RegexpEngine{}, true)
 	for _, exp := range exps {
 		findthem.AddExpression(exp)
 	}
 
-	dict := []string{}
-
+	dict := [][]byte{}
 	for key := range findthem.GetKeywords() {
-		dict = append(dict, key)
+		dict = append(dict, []byte(key))
 	}
 
-	builder := pdahocorasick.NewAhoCorasickBuilder(pdahocorasick.Opts{
-		AsciiCaseInsensitive: true,
-		MatchOnlyWholeWords:  false,
-		MatchKind:            pdahocorasick.LeftMostLongestMatch,
-		DFA:                  true,
-	})
-	bld := builder.Build(dict)
+	m := forkahocorasick.NewMatcher(dict)
+
+	content := []byte(randText100000)
 	for i := 0; i < b.N; i++ {
-		bld.FindAll(randText100000)
+		m.MatchAll(content)
 	}
 }
 

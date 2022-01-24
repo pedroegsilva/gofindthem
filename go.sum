@@ -6,8 +6,8 @@ github.com/cloudflare/ahocorasick v0.0.0-20210425175752-730270c3e184 h1:8yL+85Jp
 github.com/cloudflare/ahocorasick v0.0.0-20210425175752-730270c3e184/go.mod h1:tGWUZLZp9ajsxUOnHmFFLnqnlKXsCn6GReG4jAD59H0=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/petar-dambovaliev/aho-corasick v0.0.0-20210512121028-af76a9ff7276 h1:WuXe30Ig5zUIYEHyzsLMBFPP5l0yRQ5IiZScODHwy8g=
-github.com/petar-dambovaliev/aho-corasick v0.0.0-20210512121028-af76a9ff7276/go.mod h1:sJ7yPbuntHOmFncQegbDPPdMXz5FRZi553qc3jQBwik=
+github.com/pedroegsilva/ahocorasick v0.1.0 h1:N5egH9vhDB1eGp00uZmi8OFzb3cFrE9dG5MfrjRKcGc=
+github.com/pedroegsilva/ahocorasick v0.1.0/go.mod h1:rc/IfXCRS/n7/g2KYYEhfx4lyyn8TDlxlCE5ocby/wg=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/stretchr/objx v0.1.0 h1:4G4v2dO3VZwixGIRoQ5Lfboy6nUhCyYzaqnIAPPhYs4=
