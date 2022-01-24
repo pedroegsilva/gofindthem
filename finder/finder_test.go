@@ -30,9 +30,9 @@ func TestAddExpression(t *testing.T) {
 			expressions: []string{`"a" and r"B"`, `not "C"`},
 			expected: expectedAddExpression{
 				exprs: []exprWrapper{
-					exprWrapper{
+					{
 						`"a" and r"B"`,
-						dsl.SolverOrder{
+						&dsl.SolverOrder{
 							&dsl.Expression{
 								Type: dsl.AND_EXPR,
 								LExpr: &dsl.Expression{
@@ -55,9 +55,9 @@ func TestAddExpression(t *testing.T) {
 						},
 						"",
 					},
-					exprWrapper{
+					{
 						`not "C"`,
-						dsl.SolverOrder{
+						&dsl.SolverOrder{
 							&dsl.Expression{
 								Type: dsl.NOT_EXPR,
 								RExpr: &dsl.Expression{
@@ -74,11 +74,11 @@ func TestAddExpression(t *testing.T) {
 					},
 				},
 				keywords: map[string]struct{}{
-					"a": struct{}{},
-					"c": struct{}{},
+					"a": {},
+					"c": {},
 				},
 				regexes: map[string]struct{}{
-					"b": struct{}{},
+					"b": {},
 				},
 				errors: []error{nil, nil},
 			},
@@ -89,9 +89,9 @@ func TestAddExpression(t *testing.T) {
 			expressions: []string{`"A"`},
 			expected: expectedAddExpression{
 				exprs: []exprWrapper{
-					exprWrapper{
+					{
 						`"A"`,
-						dsl.SolverOrder{
+						&dsl.SolverOrder{
 							&dsl.Expression{
 								Type:    dsl.UNIT_EXPR,
 								Literal: "A",
@@ -101,7 +101,7 @@ func TestAddExpression(t *testing.T) {
 					},
 				},
 				keywords: map[string]struct{}{
-					"A": struct{}{},
+					"A": {},
 				},
 				regexes: map[string]struct{}{},
 				errors:  []error{nil},
@@ -113,9 +113,9 @@ func TestAddExpression(t *testing.T) {
 			expressions: []string{`"A"`, `invalid`},
 			expected: expectedAddExpression{
 				exprs: []exprWrapper{
-					exprWrapper{
+					{
 						`"A"`,
-						dsl.SolverOrder{
+						&dsl.SolverOrder{
 							&dsl.Expression{
 								Type:    dsl.UNIT_EXPR,
 								Literal: "A",
@@ -125,7 +125,7 @@ func TestAddExpression(t *testing.T) {
 					},
 				},
 				keywords: map[string]struct{}{
-					"A": struct{}{},
+					"A": {},
 				},
 				regexes: map[string]struct{}{},
 				errors:  []error{nil, fmt.Errorf("failed to scan operator: unexpected operator 'invalid' found")},
@@ -200,11 +200,11 @@ func TestProcessText(t *testing.T) {
 	text := `text`
 
 	matches1 := []*Match{
-		&Match{1, "sharpest"},
+		{1, "sharpest"},
 	}
 
 	matches2 := []*Match{
-		&Match{2, "words"},
+		{2, "words"},
 	}
 
 	emptyMatches := []*Match{}
@@ -223,16 +223,16 @@ func TestProcessText(t *testing.T) {
 	rgxMock6 := new(RegexEngineMock)
 
 	finderBuildErrSub := NewFinder(subMock3, rgxMock3, true)
-	finderBuildErrSub.keywords = map[string]struct{}{"1": struct{}{}}
+	finderBuildErrSub.keywords = map[string]struct{}{"1": {}}
 
 	finderBuildErrRgx := NewFinder(subMock4, rgxMock4, true)
-	finderBuildErrRgx.regexes = map[string]struct{}{"1": struct{}{}}
+	finderBuildErrRgx.regexes = map[string]struct{}{"1": {}}
 
 	finderFindErrSub := NewFinder(subMock5, rgxMock5, true)
-	finderFindErrSub.keywords = map[string]struct{}{"1": struct{}{}}
+	finderFindErrSub.keywords = map[string]struct{}{"1": {}}
 
 	finderFindErrRgx := NewFinder(subMock6, rgxMock6, true)
-	finderFindErrRgx.regexes = map[string]struct{}{"1": struct{}{}}
+	finderFindErrRgx.regexes = map[string]struct{}{"1": {}}
 
 	tests := []struct {
 		finder                *Finder
@@ -250,9 +250,9 @@ func TestProcessText(t *testing.T) {
 		{
 			finder: &Finder{
 				expressions: []exprWrapper{
-					exprWrapper{
+					{
 						`"sharpest"`,
-						dsl.SolverOrder{
+						&dsl.SolverOrder{
 							&dsl.Expression{
 								Type:    dsl.UNIT_EXPR,
 								Literal: "sharpest",
@@ -260,9 +260,9 @@ func TestProcessText(t *testing.T) {
 						},
 						"",
 					},
-					exprWrapper{
+					{
 						`r"words"`,
-						dsl.SolverOrder{
+						&dsl.SolverOrder{
 							&dsl.Expression{
 								Type:    dsl.UNIT_EXPR,
 								Literal: "words",
@@ -271,8 +271,8 @@ func TestProcessText(t *testing.T) {
 						"",
 					},
 				},
-				keywords:          map[string]struct{}{"sharpest": struct{}{}},
-				regexes:           map[string]struct{}{"words": struct{}{}},
+				keywords:          map[string]struct{}{"sharpest": {}},
+				regexes:           map[string]struct{}{"words": {}},
 				subEng:            subMock1,
 				rgxEng:            rgxMock1,
 				updatedSubMachine: false,
@@ -285,13 +285,13 @@ func TestProcessText(t *testing.T) {
 			findSubMockRet:     FindMockRet{matches1, nil},
 			findRgxMockRet:     FindMockRet{matches2, nil},
 			expectedExpRes: []ExpressionResult{
-				ExpressionResult{
-					Evaluation:   true,
-					ExpresionStr: `"sharpest"`,
+				{
+					ExpresionStr:   `"sharpest"`,
+					ExpresionIndex: 0,
 				},
-				ExpressionResult{
-					Evaluation:   true,
-					ExpresionStr: `r"words"`,
+				{
+					ExpresionStr:   `r"words"`,
+					ExpresionIndex: 1,
 				},
 			},
 			expectedErr: nil,
@@ -300,9 +300,9 @@ func TestProcessText(t *testing.T) {
 		{
 			finder: &Finder{
 				expressions: []exprWrapper{
-					exprWrapper{
+					{
 						`"sharpest"`,
-						dsl.SolverOrder{
+						&dsl.SolverOrder{
 							&dsl.Expression{
 								Type:    dsl.UNIT_EXPR,
 								Literal: "sharpest",
@@ -310,9 +310,9 @@ func TestProcessText(t *testing.T) {
 						},
 						"",
 					},
-					exprWrapper{
+					{
 						`r"words"`,
-						dsl.SolverOrder{
+						&dsl.SolverOrder{
 							&dsl.Expression{
 								Type:    dsl.UNIT_EXPR,
 								Literal: "words",
@@ -321,8 +321,8 @@ func TestProcessText(t *testing.T) {
 						"",
 					},
 				},
-				keywords:          map[string]struct{}{"sharpest": struct{}{}},
-				regexes:           map[string]struct{}{"words": struct{}{}},
+				keywords:          map[string]struct{}{"sharpest": {}},
+				regexes:           map[string]struct{}{"words": {}},
 				subEng:            subMock2,
 				rgxEng:            rgxMock2,
 				updatedSubMachine: true,
@@ -333,15 +333,11 @@ func TestProcessText(t *testing.T) {
 			buildSubEngMockRet: nil,
 			buildRgxEngMockRet: nil,
 			findSubMockRet:     FindMockRet{emptyMatches, nil},
-			findRgxMockRet:     FindMockRet{emptyMatches, nil},
+			findRgxMockRet:     FindMockRet{matches2, nil},
 			expectedExpRes: []ExpressionResult{
-				ExpressionResult{
-					Evaluation:   false,
-					ExpresionStr: `"sharpest"`,
-				},
-				ExpressionResult{
-					Evaluation:   false,
-					ExpresionStr: `r"words"`,
+				{
+					ExpresionStr:   `r"words"`,
+					ExpresionIndex: 1,
 				},
 			},
 			expectedErr: nil,
@@ -438,77 +434,56 @@ func TestProcessText(t *testing.T) {
 func TestAddMatchesToSolverMap(t *testing.T) {
 	assert := assert.New(t)
 	matches1 := []*Match{
-		&Match{1, "sharpest"},
-		&Match{2, "sharpest"},
-		&Match{3, "sharpest"},
-		&Match{7, "words"},
-		&Match{9, "Showman"},
-		&Match{10, "showman"},
+		{1, "sharpest"},
+		{2, "sharpest"},
+		{3, "sharpest"},
+		{7, "words"},
+		{9, "Showman"},
+		{10, "showman"},
 	}
 
 	matches2 := []*Match{
-		&Match{1, "sharpest"},
-		&Match{2, "sharpest"},
-		&Match{3, "sharpest"},
-		&Match{7, "words"},
-		&Match{9, "Showman"},
-		&Match{10, "showman"},
+		{1, "sharpest"},
+		{2, "sharpest"},
+		{3, "sharpest"},
+		{7, "words"},
+		{9, "Showman"},
+		{10, "showman"},
 	}
 
 	tests := []struct {
-		finder            *Finder
-		matches           []*Match
-		expectedSolverMap map[string]dsl.PatternResult
-		message           string
+		finder                         *Finder
+		matches                        []*Match
+		expectedSortedMatchesByKeyword map[string][]int
+		message                        string
 	}{
 		{
 			finder:  NewFinder(&EmptyEngine{}, &EmptyRgxEngine{}, false),
 			matches: matches1,
-			expectedSolverMap: map[string]dsl.PatternResult{
-				"sharpest": dsl.PatternResult{
-					Val:            true,
-					SortedMatchPos: []int{1, 2, 3},
-				},
-				"words": dsl.PatternResult{
-					Val:            true,
-					SortedMatchPos: []int{7},
-				},
-				"showman": dsl.PatternResult{
-					Val:            true,
-					SortedMatchPos: []int{9, 10},
-				},
+			expectedSortedMatchesByKeyword: map[string][]int{
+				"sharpest": {1, 2, 3},
+				"words":    {7},
+				"showman":  {9, 10},
 			},
 			message: "create with caseinsesitive",
 		},
 		{
 			finder:  NewFinder(&EmptyEngine{}, &EmptyRgxEngine{}, true),
 			matches: matches2,
-			expectedSolverMap: map[string]dsl.PatternResult{
-				"sharpest": dsl.PatternResult{
-					Val:            true,
-					SortedMatchPos: []int{1, 2, 3},
-				},
-				"words": dsl.PatternResult{
-					Val:            true,
-					SortedMatchPos: []int{7},
-				},
-				"showman": dsl.PatternResult{
-					Val:            true,
-					SortedMatchPos: []int{10},
-				},
-				"Showman": dsl.PatternResult{
-					Val:            true,
-					SortedMatchPos: []int{9},
-				},
+			expectedSortedMatchesByKeyword: map[string][]int{
+				"sharpest": {1, 2, 3},
+				"words":    {7},
+				"showman":  {10},
+				"Showman":  {9},
 			},
 			message: "create with casesesitive",
 		},
 	}
 
 	for _, tc := range tests {
-		solverMap := make(map[string]dsl.PatternResult)
-		tc.finder.addMatchesToSolverMap(tc.matches, solverMap)
-		assert.Equal(tc.expectedSolverMap, solverMap, tc.message)
+		sortedMatchesByKeyword := make(map[string][]int)
+		tc.finder.addMatchesToSolverMap(tc.matches, sortedMatchesByKeyword)
+		assert.Equal(tc.expectedSortedMatchesByKeyword, sortedMatchesByKeyword, tc.message)
 	}
 }
 
@@ -532,9 +507,9 @@ func TestSolveExpressions(t *testing.T) {
 	}
 	finder := &Finder{
 		expressions: []exprWrapper{
-			exprWrapper{
+			{
 				`"sharpest" and "words"`,
-				dsl.SolverOrder{
+				&dsl.SolverOrder{
 					&dsl.Expression{
 						Type:  dsl.AND_EXPR,
 						LExpr: lexp1,
@@ -545,9 +520,9 @@ func TestSolveExpressions(t *testing.T) {
 				},
 				"",
 			},
-			exprWrapper{
+			{
 				`"no one" or "Can get in the way"`,
-				dsl.SolverOrder{
+				&dsl.SolverOrder{
 					&dsl.Expression{
 						Type:  dsl.OR_EXPR,
 						LExpr: lexp2,
@@ -562,30 +537,22 @@ func TestSolveExpressions(t *testing.T) {
 	}
 
 	tests := []struct {
-		finder         *Finder
-		solverMap      map[string]dsl.PatternResult
-		expectedExpRes []ExpressionResult
-		expectedErr    error
-		message        string
+		finder                 *Finder
+		sortedMatchesByKeyword map[string][]int
+		expectedExpRes         []ExpressionResult
+		expectedErr            error
+		message                string
 	}{
 		{
 			finder: finder,
-			solverMap: map[string]dsl.PatternResult{
-				"sharpest": dsl.PatternResult{
-					Val: true,
-				},
-				"words": dsl.PatternResult{
-					Val: true,
-				},
+			sortedMatchesByKeyword: map[string][]int{
+				"sharpest": {},
+				"words":    {},
 			},
 			expectedExpRes: []ExpressionResult{
-				ExpressionResult{
-					Evaluation:   true,
-					ExpresionStr: `"sharpest" and "words"`,
-				},
-				ExpressionResult{
-					Evaluation:   false,
-					ExpresionStr: `"no one" or "Can get in the way"`,
+				{
+					ExpresionIndex: 0,
+					ExpresionStr:   `"sharpest" and "words"`,
 				},
 			},
 			expectedErr: nil,
@@ -593,65 +560,42 @@ func TestSolveExpressions(t *testing.T) {
 		},
 		{
 			finder: finder,
-			solverMap: map[string]dsl.PatternResult{
-				"no one": dsl.PatternResult{
-					Val: true,
-				},
+			sortedMatchesByKeyword: map[string][]int{
+				"no one": {},
 			},
 			expectedExpRes: []ExpressionResult{
-				ExpressionResult{
-					Evaluation:   false,
-					ExpresionStr: `"sharpest" and "words"`,
-				},
-				ExpressionResult{
-					Evaluation:   true,
-					ExpresionStr: `"no one" or "Can get in the way"`,
+				{
+					ExpresionIndex: 1,
+					ExpresionStr:   `"no one" or "Can get in the way"`,
 				},
 			},
 			expectedErr: nil,
-			message:     "first exp true",
+			message:     "second exp true",
 		},
 		{
 			finder: finder,
-			solverMap: map[string]dsl.PatternResult{
-				"words": dsl.PatternResult{
-					Val: true,
-				},
+			sortedMatchesByKeyword: map[string][]int{
+				"words": {},
 			},
-			expectedExpRes: []ExpressionResult{
-				ExpressionResult{
-					Evaluation:   false,
-					ExpresionStr: `"sharpest" and "words"`,
-				},
-				ExpressionResult{
-					Evaluation:   false,
-					ExpresionStr: `"no one" or "Can get in the way"`,
-				},
-			},
-			expectedErr: nil,
-			message:     "both false",
+			expectedExpRes: []ExpressionResult{},
+			expectedErr:    nil,
+			message:        "both false",
 		},
 		{
 			finder: finder,
-			solverMap: map[string]dsl.PatternResult{
-				"sharpest": dsl.PatternResult{
-					Val: true,
-				},
-				"words": dsl.PatternResult{
-					Val: true,
-				},
-				"Can get in the way": dsl.PatternResult{
-					Val: true,
-				},
+			sortedMatchesByKeyword: map[string][]int{
+				"sharpest":           {},
+				"words":              {},
+				"Can get in the way": {},
 			},
 			expectedExpRes: []ExpressionResult{
-				ExpressionResult{
-					Evaluation:   true,
-					ExpresionStr: `"sharpest" and "words"`,
+				{
+					ExpresionIndex: 0,
+					ExpresionStr:   `"sharpest" and "words"`,
 				},
-				ExpressionResult{
-					Evaluation:   true,
-					ExpresionStr: `"no one" or "Can get in the way"`,
+				{
+					ExpresionIndex: 1,
+					ExpresionStr:   `"no one" or "Can get in the way"`,
 				},
 			},
 			expectedErr: nil,
@@ -660,7 +604,7 @@ func TestSolveExpressions(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		expRes, err := tc.finder.solveExpressions(tc.solverMap)
+		expRes, err := tc.finder.solveExpressions(tc.sortedMatchesByKeyword)
 		assert.Equal(tc.expectedErr, err, tc.message)
 		if err == nil {
 			assert.Equal(tc.expectedExpRes, expRes, tc.message)

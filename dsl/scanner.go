@@ -90,7 +90,7 @@ func (s *Scanner) Scan() (tok Token, lit string, err error) {
 		return s.scanWhitespace()
 	case ch == '"':
 		s.unread()
-		return s.scanKeyword()
+		return s.scanKeyword(false)
 	case isLetter(ch):
 		s.unread()
 		return s.scanOperators()
@@ -102,7 +102,7 @@ func (s *Scanner) Scan() (tok Token, lit string, err error) {
 		return EOF, "", nil
 	}
 
-	return ILLEGAL, "", fmt.Errorf("Illegal char was found %c", ch)
+	return ILLEGAL, "", fmt.Errorf("illegal char was found %c", ch)
 }
 
 // scanWhitespace consumes the current rune and all contiguous whitespace.
@@ -164,7 +164,7 @@ func (s *Scanner) scanOperators() (tok Token, lit string, err error) {
 	case "INORD":
 		tok = INORD
 	case "R":
-		tok = REGEX
+		tok, lit, err = s.scanKeyword(true)
 	default:
 		return ILLEGAL, "", fmt.Errorf("failed to scan operator: unexpected operator '%s' found", lit)
 	}
@@ -175,10 +175,14 @@ func (s *Scanner) scanOperators() (tok Token, lit string, err error) {
 // scanKeyword scans the keyword and scape needed characters
 // If a invalid scape is used an error will be returned and if EOF is found
 // before a '"' returns an error as well.
-func (s *Scanner) scanKeyword() (tok Token, lit string, err error) {
+func (s *Scanner) scanKeyword(isRegex bool) (tok Token, lit string, err error) {
 	ch := s.read()
+	scanType := "keyword"
+	if isRegex {
+		scanType = "regex"
+	}
 	if ch != '"' {
-		return ILLEGAL, "", fmt.Errorf("fail to scan keyword: expected \" but found %c", ch)
+		return ILLEGAL, "", fmt.Errorf("fail to scan %s: expected \" but found %c", scanType, ch)
 	}
 	var buf bytes.Buffer
 
@@ -187,7 +191,7 @@ func (s *Scanner) scanKeyword() (tok Token, lit string, err error) {
 		ch := s.read()
 		switch ch {
 		case eof:
-			return ILLEGAL, "", fmt.Errorf("fail to scan keyword: expected \" but found EOF")
+			return ILLEGAL, "", fmt.Errorf("fail to scan %s: expected \" but found EOF", scanType)
 		case '\\':
 			scapedCh := s.read()
 			switch scapedCh {
@@ -202,7 +206,7 @@ func (s *Scanner) scanKeyword() (tok Token, lit string, err error) {
 			case '"':
 				_, _ = buf.WriteRune(scapedCh)
 			default:
-				return ILLEGAL, "", fmt.Errorf("fail to scan keyword: invalid escaped char %c", scapedCh)
+				return ILLEGAL, "", fmt.Errorf("fail to scan %s: invalid escaped char %c", scanType, scapedCh)
 			}
 		case '"':
 			endloop = true
@@ -214,7 +218,12 @@ func (s *Scanner) scanKeyword() (tok Token, lit string, err error) {
 		}
 	}
 	lit = buf.String()
-	tok = KEYWORD
+	if isRegex {
+		tok = REGEX
+	} else {
+		tok = KEYWORD
+	}
+
 	return
 }
 

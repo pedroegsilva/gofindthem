@@ -14,9 +14,9 @@ import (
 
 	akahocorasick "github.com/anknown/ahocorasick"
 	cfahocorasick "github.com/cloudflare/ahocorasick"
+	forkahocorasick "github.com/pedroegsilva/ahocorasick/ahocorasick"
 	"github.com/pedroegsilva/gofindthem/dsl"
 	"github.com/pedroegsilva/gofindthem/finder"
-	pdahocorasick "github.com/petar-dambovaliev/aho-corasick"
 )
 
 func init() {
@@ -52,14 +52,14 @@ func init() {
 		log.Fatal(err)
 	}
 
-	exp100, solverMapComp100, solverMapPart100 = createRandExpressionAndSolverMap(100)
-	exp10000, solverMapComp10000, solverMapPart10000 = createRandExpressionAndSolverMap(10000)
+	exp100, sortedMatchesByKeywordComp100, sortedMatchesByKeywordPart100 = createRandExpressionAndSolverMap(100)
+	exp10000, sortedMatchesByKeywordComp10000, sortedMatchesByKeywordPart10000 = createRandExpressionAndSolverMap(10000)
 	exps10 = createExpressions(10)
 	exps100 = createExpressions(100)
 	exps1000 = createExpressions(1000)
 	knownTerms := make([]string, 10000)
 	count = 0
-	for word := range solverMapComp10000 {
+	for word := range sortedMatchesByKeywordComp10000 {
 		knownTerms[count] = word
 		count++
 	}
@@ -69,14 +69,14 @@ func init() {
 var alphabet = []rune("0123456789abcdefghijklmnopqrstuvwxyz")
 
 var (
-	words                                  [466550]string
-	exp100, exp10000                       string
-	solverMapComp100, solverMapPart100     map[string]dsl.PatternResult
-	solverMapComp10000, solverMapPart10000 map[string]dsl.PatternResult
-	exps10                                 []string
-	exps100                                []string
-	exps1000                               []string
-	randText100000                         string
+	words                                                            [466550]string
+	exp100, exp10000                                                 string
+	sortedMatchesByKeywordComp100, sortedMatchesByKeywordPart100     map[string][]int
+	sortedMatchesByKeywordComp10000, sortedMatchesByKeywordPart10000 map[string][]int
+	exps10                                                           []string
+	exps100                                                          []string
+	exps1000                                                         []string
+	randText100000                                                   string
 )
 
 const (
@@ -90,19 +90,19 @@ func BenchmarkParser100(b *testing.B) {
 }
 
 func BenchmarkSolverCompleteMap100(b *testing.B) {
-	BMSolver(exp100, solverMapComp100, true, b)
+	BMSolver(exp100, sortedMatchesByKeywordComp100, b)
 }
 
 func BenchmarkSolverPartialMap100(b *testing.B) {
-	BMSolver(exp100, solverMapPart100, false, b)
+	BMSolver(exp100, sortedMatchesByKeywordPart100, b)
 }
 
 func BenchmarkSolverIterCompleteMap100(b *testing.B) {
-	BMSolverIter(exp100, solverMapComp100, true, b)
+	BMSolverIter(exp100, sortedMatchesByKeywordComp100, b)
 }
 
 func BenchmarkSolverIterPartialMap100(b *testing.B) {
-	BMSolverIter(exp100, solverMapPart100, false, b)
+	BMSolverIter(exp100, sortedMatchesByKeywordPart100, b)
 }
 
 func BenchmarkAhocorasickCloudFlareBuild100(b *testing.B) {
@@ -113,8 +113,8 @@ func BenchmarkAhocorasickAnknownBuild100(b *testing.B) {
 	BMAnknownBuild(exp100, b)
 }
 
-func BenchmarkAhocorasickPetarDambovalievBuild100(b *testing.B) {
-	BMPetarDambovalievBuild(exp100, b)
+func BenchmarkAhocorasickCloudflareForkBuild100(b *testing.B) {
+	BMCloudflareForkBuild(exp100, b)
 }
 
 func BenchmarkAhocorasickCloudFlareSearch100(b *testing.B) {
@@ -133,12 +133,12 @@ func BenchmarkDslWithAnknown100(b *testing.B) {
 	BMDslSearch([]string{exp100}, &finder.AnknownEngine{}, b)
 }
 
-func BenchmarkAhocorasickPetarDambovalievSearch100(b *testing.B) {
-	BMPetarDambovalievSearch([]string{exp100}, b)
+func BenchmarkAhocorasickCloudflareForkSearch100(b *testing.B) {
+	BMCloudflareForkSearch([]string{exp100}, b)
 }
 
-func BenchmarkDslWithPetarDambovaliev100(b *testing.B) {
-	BMDslSearch([]string{exp100}, &finder.PetarDambovalievEngine{}, b)
+func BenchmarkDslWithCloudflareFork100(b *testing.B) {
+	BMDslSearch([]string{exp100}, &finder.CloudflareForkEngine{}, b)
 }
 
 // 10000 terms
@@ -148,19 +148,19 @@ func BenchmarkParser10000(b *testing.B) {
 }
 
 func BenchmarkSolverCompleteMap10000(b *testing.B) {
-	BMSolver(exp10000, solverMapComp10000, true, b)
+	BMSolver(exp10000, sortedMatchesByKeywordComp10000, b)
 }
 
 func BenchmarkSolverPartialMap10000(b *testing.B) {
-	BMSolver(exp10000, solverMapPart10000, false, b)
+	BMSolver(exp10000, sortedMatchesByKeywordPart10000, b)
 }
 
 func BenchmarkSolverIterCompleteMap10000(b *testing.B) {
-	BMSolverIter(exp10000, solverMapComp10000, true, b)
+	BMSolverIter(exp10000, sortedMatchesByKeywordComp10000, b)
 }
 
 func BenchmarkSolverIterPartialMap10000(b *testing.B) {
-	BMSolverIter(exp10000, solverMapPart10000, false, b)
+	BMSolverIter(exp10000, sortedMatchesByKeywordPart10000, b)
 }
 
 func BenchmarkAhocorasickCloudFlareBuild10000(b *testing.B) {
@@ -171,8 +171,8 @@ func BenchmarkAhocorasickAnknownBuild10000(b *testing.B) {
 	BMAnknownBuild(exp10000, b)
 }
 
-func BenchmarkAhocorasickPetarDambovalievBuild10000(b *testing.B) {
-	BMPetarDambovalievBuild(exp10000, b)
+func BenchmarkAhocorasickCloudflareForkBuild10000(b *testing.B) {
+	BMCloudflareForkBuild(exp10000, b)
 }
 
 func BenchmarkAhocorasickCloudFlareSearch10000(b *testing.B) {
@@ -191,12 +191,12 @@ func BenchmarkDslWithAnknown10000(b *testing.B) {
 	BMDslSearch([]string{exp10000}, &finder.AnknownEngine{}, b)
 }
 
-func BenchmarkAhocorasickPetarDambovalievSearch10000(b *testing.B) {
-	BMPetarDambovalievSearch([]string{exp10000}, b)
+func BenchmarkAhocorasickCloudflareForkSearch10000(b *testing.B) {
+	BMCloudflareForkSearch([]string{exp10000}, b)
 }
 
-func BenchmarkDslWithPetarDambovaliev10000(b *testing.B) {
-	BMDslSearch([]string{exp10000}, &finder.PetarDambovalievEngine{}, b)
+func BenchmarkDslWithCloudflareFork10000(b *testing.B) {
+	BMDslSearch([]string{exp10000}, &finder.CloudflareForkEngine{}, b)
 }
 
 // dsl specific
@@ -220,12 +220,12 @@ func BenchmarkDslWithAnknown10Exps(b *testing.B) {
 	BMDslSearch(exps10, &finder.AnknownEngine{}, b)
 }
 
-func BenchmarkOnlyPetarDambovaliev10Exps(b *testing.B) {
-	BMPetarDambovalievSearch(exps10, b)
+func BenchmarkOnlyCloudflareFork10Exps(b *testing.B) {
+	BMCloudflareForkSearch(exps10, b)
 }
 
-func BenchmarkDslWithPetarDambovaliev10Exps(b *testing.B) {
-	BMDslSearch(exps10, &finder.PetarDambovalievEngine{}, b)
+func BenchmarkDslWithCloudflareFork10Exps(b *testing.B) {
+	BMDslSearch(exps10, &finder.CloudflareForkEngine{}, b)
 }
 
 func BenchmarkDslWithEmptyEngine100Exps(b *testing.B) {
@@ -248,12 +248,12 @@ func BenchmarkDslWithAnknown100Exps(b *testing.B) {
 	BMDslSearch(exps100, &finder.AnknownEngine{}, b)
 }
 
-func BenchmarkOnlyPetarDambovaliev100Exps(b *testing.B) {
-	BMPetarDambovalievSearch(exps100, b)
+func BenchmarkOnlyCloudflareFork100Exps(b *testing.B) {
+	BMCloudflareForkSearch(exps100, b)
 }
 
-func BenchmarkDslWithPetarDambovaliev100Exps(b *testing.B) {
-	BMDslSearch(exps100, &finder.PetarDambovalievEngine{}, b)
+func BenchmarkDslWithCloudflareFork100Exps(b *testing.B) {
+	BMDslSearch(exps100, &finder.CloudflareForkEngine{}, b)
 }
 
 func BenchmarkDslWithEmptyEngine1000Exps(b *testing.B) {
@@ -276,33 +276,33 @@ func BenchmarkDslWithAnknown1000Exps(b *testing.B) {
 	BMDslSearch(exps1000, &finder.AnknownEngine{}, b)
 }
 
-func BenchmarkOnlyPetarDambovaliev1000Exps(b *testing.B) {
-	BMPetarDambovalievSearch(exps1000, b)
+func BenchmarkOnlyCloudflareFork1000Exps(b *testing.B) {
+	BMCloudflareForkSearch(exps1000, b)
 }
 
-func BenchmarkDslWithPetarDambovaliev1000Exps(b *testing.B) {
-	BMDslSearch(exps1000, &finder.PetarDambovalievEngine{}, b)
+func BenchmarkDslWithCloudflareFork1000Exps(b *testing.B) {
+	BMDslSearch(exps1000, &finder.CloudflareForkEngine{}, b)
 }
 
 func BenchmarkUseCasesDsl(b *testing.B) {
 	expressions := []string{
 		`"foo" and "bar"`,
 	}
-	BMDslSearch(expressions, &finder.PetarDambovalievEngine{}, b)
+	BMDslSearch(expressions, &finder.CloudflareForkEngine{}, b)
 }
 
 func BenchmarkUseCasesDslWithRegex(b *testing.B) {
 	expressions := []string{
 		`r"foo.*bar" and r"bar.*foo"`,
 	}
-	BMDslSearch(expressions, &finder.PetarDambovalievEngine{}, b)
+	BMDslSearch(expressions, &finder.CloudflareForkEngine{}, b)
 }
 
 func BenchmarkUseCasesDslWithInord(b *testing.B) {
 	expressions := []string{
 		`INORD("foo" and "bar") and INORD("bar" and "foo")`,
 	}
-	BMDslSearch(expressions, &finder.PetarDambovalievEngine{}, b)
+	BMDslSearch(expressions, &finder.CloudflareForkEngine{}, b)
 }
 
 func BenchmarkUseCasesRegexOnly(b *testing.B) {
@@ -323,20 +323,20 @@ func BMParser(exp string, b *testing.B) {
 	}
 }
 
-func BMSolver(exp string, solverMap map[string]dsl.PatternResult, completeMap bool, b *testing.B) {
+func BMSolver(exp string, sortedMatchesByKeyword map[string][]int, b *testing.B) {
 	p := dsl.NewParser(strings.NewReader(exp), true)
 	e, _ := p.Parse()
 	for i := 0; i < b.N; i++ {
-		e.Solve(solverMap, completeMap)
+		e.Solve(sortedMatchesByKeyword)
 	}
 }
 
-func BMSolverIter(exp string, solverMap map[string]dsl.PatternResult, completeMap bool, b *testing.B) {
+func BMSolverIter(exp string, sortedMatchesByKeyword map[string][]int, b *testing.B) {
 	p := dsl.NewParser(strings.NewReader(exp), true)
 	e, _ := p.Parse()
 	so := e.CreateSolverOrder()
 	for i := 0; i < b.N; i++ {
-		so.Solve(solverMap, completeMap)
+		so.Solve(sortedMatchesByKeyword)
 	}
 }
 
@@ -367,23 +367,16 @@ func BMAnknownBuild(exp string, b *testing.B) {
 	}
 }
 
-func BMPetarDambovalievBuild(exp string, b *testing.B) {
-	p := dsl.NewParser(strings.NewReader(exp100), true)
+func BMCloudflareForkBuild(exp string, b *testing.B) {
+	p := dsl.NewParser(strings.NewReader(exp), true)
 	p.Parse()
-	dict := []string{}
-
+	dict := [][]byte{}
 	for key := range p.GetKeywords() {
-		dict = append(dict, key)
+		dict = append(dict, []byte(key))
 	}
 
 	for i := 0; i < b.N; i++ {
-		builder := pdahocorasick.NewAhoCorasickBuilder(pdahocorasick.Opts{
-			AsciiCaseInsensitive: true,
-			MatchOnlyWholeWords:  false,
-			MatchKind:            pdahocorasick.LeftMostLongestMatch,
-			DFA:                  true,
-		})
-		builder.Build(dict)
+		forkahocorasick.NewMatcher(dict)
 	}
 }
 
@@ -426,27 +419,22 @@ func BMAnknownSearch(exps []string, b *testing.B) {
 	}
 }
 
-func BMPetarDambovalievSearch(exps []string, b *testing.B) {
+func BMCloudflareForkSearch(exps []string, b *testing.B) {
 	findthem := finder.NewFinder(&finder.EmptyEngine{}, &finder.RegexpEngine{}, true)
 	for _, exp := range exps {
 		findthem.AddExpression(exp)
 	}
 
-	dict := []string{}
-
+	dict := [][]byte{}
 	for key := range findthem.GetKeywords() {
-		dict = append(dict, key)
+		dict = append(dict, []byte(key))
 	}
 
-	builder := pdahocorasick.NewAhoCorasickBuilder(pdahocorasick.Opts{
-		AsciiCaseInsensitive: true,
-		MatchOnlyWholeWords:  true,
-		MatchKind:            pdahocorasick.LeftMostLongestMatch,
-		DFA:                  false,
-	})
-	bld := builder.Build(dict)
+	m := forkahocorasick.NewMatcher(dict)
+
+	content := []byte(randText100000)
 	for i := 0; i < b.N; i++ {
-		bld.FindAll(randText100000)
+		m.MatchAll(content)
 	}
 }
 
@@ -474,9 +462,9 @@ func RandStringRunes(n int) string {
 
 func createRandExpressionAndSolverMap(
 	numTerm int,
-) (string, map[string]dsl.PatternResult, map[string]dsl.PatternResult) {
-	solverMapComp := make(map[string]dsl.PatternResult, numTerm)
-	solverMapPart := make(map[string]dsl.PatternResult, numTerm/4)
+) (string, map[string][]int, map[string][]int) {
+	sortedMatchesByKeywordComp := make(map[string][]int, numTerm)
+	sortedMatchesByKeywordPart := make(map[string][]int, numTerm/4)
 	expression := ""
 	dictLen := len(words)
 	for i := 1; i <= numTerm; i++ {
@@ -488,20 +476,14 @@ func createRandExpressionAndSolverMap(
 			expression = expression + fmt.Sprintf(`"%s" AND `, keyword)
 		}
 		if rand.Intn(4) == 0 {
-			solverMapComp[keyword] = dsl.PatternResult{
-				Val: true,
-			}
-			solverMapPart[keyword] = dsl.PatternResult{
-				Val: true,
-			}
+			sortedMatchesByKeywordComp[keyword] = []int{}
+			sortedMatchesByKeywordPart[keyword] = []int{}
 		} else {
-			solverMapComp[keyword] = dsl.PatternResult{
-				Val: false,
-			}
+			sortedMatchesByKeywordComp[keyword] = []int{}
 		}
 	}
 	expression = "INORD(" + expression + ")"
-	return expression, solverMapComp, solverMapPart
+	return expression, sortedMatchesByKeywordComp, sortedMatchesByKeywordPart
 }
 
 func createExpressions(numExp int) []string {

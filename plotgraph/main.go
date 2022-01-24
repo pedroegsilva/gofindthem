@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	BENCH_FILE = "./plotgraph/files/expIncreaseGeneralCloudFlare2.txt"
+	BENCH_FILE = "./plotgraph/files/expIncreaseGeneralCloudFlareFork3.txt"
 )
 
 func main() {
@@ -59,12 +59,16 @@ func main() {
 
 		group := strings.Split(b.Name, "/")[1]
 		groupSplit := strings.Split(group, "_")
+
 		num := strings.Split(strings.Split(groupSplit[len(groupSplit)-1], "-")[0], "#")[0]
 
 		name := strings.Join(groupSplit[:len(groupSplit)-1], "_")
 		flNum, _ := strconv.ParseFloat(num, 64)
+		// if strings.Contains(strings.ToLower(name), "regex") {
+		// 	continue
+		// }
 
-		if flNum >= 10 && flNum <= 10000 {
+		if flNum >= 1000 && flNum <= 10000 {
 			points[name] = append(points[name], plotter.XY{X: flNum, Y: b.NsPerOp})
 		}
 
@@ -80,7 +84,7 @@ func main() {
 	p.Legend.Top = true
 	p.Legend.Left = true
 
-	if err := p.Save(8*vg.Inch, 8*vg.Inch, "/home/pedroegs/expIncreaseGeneralCloudFlareGraph2_full.png"); err != nil {
+	if err := p.Save(8*vg.Inch, 8*vg.Inch, "/home/pedroegs/expIncreaseGeneralCloudFlareFork3Graph_1000_10000.png"); err != nil {
 		panic(err)
 	}
 

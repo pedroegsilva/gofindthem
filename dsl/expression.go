@@ -44,16 +44,7 @@ type Expression struct {
 	RExpr   *Expression
 	Type    ExprType
 	Literal string
-	Val     bool
-	Pos     []int
 	Inord   bool
-}
-
-// PatternResult stores if the patter was matched on
-// the text and the positions it was found
-type PatternResult struct {
-	Val            bool
-	SortedMatchPos []int
 }
 
 // GetTypeName returns the type of the expression with a readable name
@@ -66,49 +57,34 @@ func (exp *Expression) GetTypeName() string {
 // all the terms needed to solve de expression or it will return an error.
 // If the incomplete map is used, missing keys will be considered as a no match on the
 // document.
-func (exp *Expression) Solve(
-	patterResByKeyword map[string]PatternResult,
-	completeMap bool,
-) (bool, error) {
-	eval, _, err := exp.solve(patterResByKeyword, completeMap)
+func (exp *Expression) Solve(sortedMatchesByKeyword map[string][]int) (bool, error) {
+	eval, _, err := exp.solve(sortedMatchesByKeyword)
 	return eval, err
 }
 
 //solve implements Solve
-func (exp *Expression) solve(
-	patterResByKeyword map[string]PatternResult,
-	completeMap bool,
-) (bool, []int, error) {
+func (exp *Expression) solve(sortedMatchesByKeyword map[string][]int) (bool, []int, error) {
 	switch exp.Type {
 	case UNIT_EXPR:
-		var pos []int
-		if resp, ok := patterResByKeyword[exp.Literal]; ok {
-			exp.Val = resp.Val
-			if exp.Inord {
-				pos = resp.SortedMatchPos
-			}
-		} else {
-			if completeMap {
-				return false, pos, fmt.Errorf("could not find key %s on map.", exp.Literal)
-			} else {
-				exp.Val = false
-			}
+		if sortedMatches, ok := sortedMatchesByKeyword[exp.Literal]; ok {
+			return true, sortedMatches, nil
 		}
-		return exp.Val, pos, nil
+		return false, nil, nil
+
 	case AND_EXPR:
-		var pos []int
 		if exp.LExpr == nil || exp.RExpr == nil {
-			return false, pos, fmt.Errorf("And statment do not have rigth or left expression: %v", exp)
+			return false, nil, fmt.Errorf("AND statment do not have rigth or left expression: %v", exp)
 		}
-		lval, lpos, err := exp.LExpr.solve(patterResByKeyword, completeMap)
+		lval, lpos, err := exp.LExpr.solve(sortedMatchesByKeyword)
 		if err != nil {
-			return false, pos, err
+			return false, nil, err
 		}
-		rval, rpos, err := exp.RExpr.solve(patterResByKeyword, completeMap)
+		rval, rpos, err := exp.RExpr.solve(sortedMatchesByKeyword)
 		if err != nil {
-			return false, pos, err
+			return false, nil, err
 		}
-		exp.Val = lval && rval
+
+		var pos []int
 		if exp.Inord && len(lpos) > 0 && len(rpos) > 0 {
 			idx := getLowestIdxGTVal(rpos, lpos[0])
 			if idx >= 0 {
@@ -116,50 +92,52 @@ func (exp *Expression) solve(
 			}
 		}
 
-		return exp.Val, pos, nil
+		return lval && rval, pos, nil
+
 	case OR_EXPR:
-		var pos []int
+
 		if exp.LExpr == nil || exp.RExpr == nil {
-			return false, pos, fmt.Errorf("OR statment do not have rigth or left expression: %v", exp)
+			return false, nil, fmt.Errorf("OR statment do not have rigth or left expression: %v", exp)
 		}
-		lval, lpos, err := exp.LExpr.solve(patterResByKeyword, completeMap)
+		lval, lpos, err := exp.LExpr.solve(sortedMatchesByKeyword)
 		if err != nil {
-			return false, pos, err
+			return false, nil, err
 		}
-		rval, rpos, err := exp.RExpr.solve(patterResByKeyword, completeMap)
+		rval, rpos, err := exp.RExpr.solve(sortedMatchesByKeyword)
 		if err != nil {
-			return false, pos, err
+			return false, nil, err
 		}
-		exp.Val = lval || rval
+
+		var pos []int
 		if exp.Inord {
 			pos = mergeArraysSorted(lpos, rpos)
 		}
 
-		return exp.Val, pos, nil
+		return lval || rval, pos, nil
+
 	case NOT_EXPR:
-		var pos []int
 		if exp.RExpr == nil {
-			return false, pos, fmt.Errorf("NOT statement do not have expression: %v", exp)
+			return false, nil, fmt.Errorf("NOT statement do not have expression: %v", exp)
 		}
-		rval, _, err := exp.RExpr.solve(patterResByKeyword, completeMap)
+		rval, _, err := exp.RExpr.solve(sortedMatchesByKeyword)
 		if err != nil {
-			return false, pos, err
+			return false, nil, err
 		}
-		exp.Val = !rval
-		return exp.Val, pos, nil
+
+		return !rval, nil, nil
+
 	case INORD_EXPR:
-		var pos []int
 		if exp.RExpr == nil {
-			return false, pos, fmt.Errorf("INORD statement do not have expression: %v", exp)
+			return false, nil, fmt.Errorf("INORD statement do not have expression: %v", exp)
 		}
-		rval, rpos, err := exp.RExpr.solve(patterResByKeyword, completeMap)
+		rval, rpos, err := exp.RExpr.solve(sortedMatchesByKeyword)
 		if err != nil {
-			return false, pos, err
+			return false, nil, err
 		}
-		exp.Val = rval && len(rpos) > 0
-		return exp.Val, pos, nil
+		return rval && len(rpos) > 0, nil, nil
+
 	default:
-		return false, nil, fmt.Errorf("Unable to process expression type %d", exp.Type)
+		return false, nil, fmt.Errorf("unable to process expression type %d", exp.Type)
 	}
 }
 
@@ -195,12 +173,18 @@ func (exp *Expression) prettyFormat(lvl int) (pprint string) {
 // SolverOrder store the expressions Preorder
 type SolverOrder []*Expression
 
+type valAndPos struct {
+	Val bool
+	Pos []int
+}
+
 // Solve solves the expresion iteratively. It has the option to use a complete map of
 // PatternResult or a incomplete map. If the complete map option is used the map must have
 // all the terms needed to solve de expression or it will return an error.
 // If the incomplete map is used, missing keys will be considered as a no match on the
 // document.
-func (so SolverOrder) Solve(patterResByKeyword map[string]PatternResult, completeMap bool) (bool, error) {
+func (so SolverOrder) Solve(sortedMatchesByKeyword map[string][]int) (bool, error) {
+	values := make(map[*Expression]valAndPos, len(sortedMatchesByKeyword))
 	for i := len(so) - 1; i >= 0; i-- {
 		exp := so[i]
 		if exp == nil {
@@ -208,71 +192,74 @@ func (so SolverOrder) Solve(patterResByKeyword map[string]PatternResult, complet
 		}
 		switch exp.Type {
 		case UNIT_EXPR:
-			if resp, ok := patterResByKeyword[exp.Literal]; ok {
-				exp.Val = resp.Val
-				if exp.Inord {
-					exp.Pos = resp.SortedMatchPos
+			if sortedMatches, ok := sortedMatchesByKeyword[exp.Literal]; ok {
+				values[exp] = valAndPos{
+					Val: true,
+					Pos: sortedMatches,
 				}
 			} else {
-				if completeMap {
-					return false, fmt.Errorf("could not find key %s on map.", exp.Literal)
-				} else {
-					exp.Val = false
-				}
+				values[exp] = valAndPos{Val: false}
 			}
+
 		case AND_EXPR:
-			if exp.LExpr == nil || exp.RExpr == nil {
-				return false, fmt.Errorf("And statement do not have right or left expression: %v", exp)
+			l, lOk := values[exp.LExpr]
+			r, rOk := values[exp.RExpr]
+			if !lOk || !rOk {
+				return false, fmt.Errorf("AND statement do not have right or left expression: %v", exp)
 			}
-			exp.Val = exp.LExpr.Val && exp.RExpr.Val
+			vap := valAndPos{Val: l.Val && r.Val}
+
 			if exp.Inord {
-				lpos := exp.LExpr.Pos
-				rpos := exp.RExpr.Pos
+				lpos := l.Pos
+				rpos := r.Pos
 				if exp.Inord && len(lpos) > 0 && len(rpos) > 0 {
 					idx := getLowestIdxGTVal(rpos, lpos[0])
 					if idx >= 0 {
-						exp.Pos = rpos[idx:]
+						vap.Pos = rpos[idx:]
 					}
 				}
 			}
+			values[exp] = vap
 
 		case OR_EXPR:
-			if exp.LExpr == nil || exp.RExpr == nil {
+			l, lOk := values[exp.LExpr]
+			r, rOk := values[exp.RExpr]
+			if !lOk || !rOk {
 				return false, fmt.Errorf("OR statement do not have right or left expression: %v", exp)
 			}
-			exp.Val = exp.LExpr.Val || exp.RExpr.Val
+			vap := valAndPos{Val: l.Val || r.Val}
 			if exp.Inord {
-				lpos := exp.LExpr.Pos
-				rpos := exp.RExpr.Pos
-				exp.Pos = mergeArraysSorted(lpos, rpos)
+				vap.Pos = mergeArraysSorted(l.Pos, r.Pos)
 			}
+			values[exp] = vap
 
 		case NOT_EXPR:
-			if exp.RExpr == nil {
+			r, rOk := values[exp.RExpr]
+			if !rOk {
 				return false, fmt.Errorf("NOT statement do not have expression: %v", exp)
 			}
-
-			exp.Val = !exp.RExpr.Val
+			values[exp] = valAndPos{Val: !r.Val}
 
 		case INORD_EXPR:
-			if exp.RExpr == nil {
+			r, rOk := values[exp.RExpr]
+			if !rOk {
 				return false, fmt.Errorf("INORD statement do not have expression: %v", exp)
 			}
-			exp.Val = exp.RExpr.Val && len(exp.RExpr.Pos) > 0
+			values[exp] = valAndPos{Val: r.Val && len(r.Pos) > 0}
 		default:
-			return false, fmt.Errorf("Unable to process expression type %d", exp.Type)
+			return false, fmt.Errorf("unable to process expression type %d", exp.Type)
 		}
 	}
-	return so[0].Val, nil
+	return values[so[0]].Val, nil
 }
 
 // CreateSolverOrder traverses the expression tree in Preorder and
 // stores the expressions on SolverOrder
-func (exp *Expression) CreateSolverOrder() SolverOrder {
+func (exp *Expression) CreateSolverOrder() *SolverOrder {
 	solverOrder := new(SolverOrder)
 	cpExp := exp
 	createSolverOrder(cpExp, solverOrder)
-	return *solverOrder
+	return solverOrder
 }
 
 // createSolverOrder recursion that traverses the expression

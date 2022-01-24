@@ -89,17 +89,17 @@ func BMIncresingTextSize(b *testing.B, step int) {
 		expressions1 := []string{
 			`"foo" and "bar"`,
 		}
-		BMDslSearch(fmt.Sprintf("TextDSL_%d", i), expressions1, &finder.AnknownEngine{}, text, b)
+		BMDslSearch(fmt.Sprintf("TextDSL_%d", i), expressions1, &finder.CloudflareForkEngine{}, text, b)
 
 		expressions2 := []string{
 			`r"foo.*bar" and r"bar.*foo"`,
 		}
-		BMDslSearch(fmt.Sprintf("TextDSLRegex_%d", i), expressions2, &finder.AnknownEngine{}, text, b)
+		BMDslSearch(fmt.Sprintf("TextDSLRegex_%d", i), expressions2, &finder.CloudflareForkEngine{}, text, b)
 
 		expressions3 := []string{
 			`INORD("foo" and "bar") and INORD("bar" and "foo")`,
 		}
-		BMDslSearch(fmt.Sprintf("TextDSLInord_%d", i), expressions3, &finder.AnknownEngine{}, text, b)
+		BMDslSearch(fmt.Sprintf("TextDSLInord_%d", i), expressions3, &finder.CloudflareForkEngine{}, text, b)
 
 		regexes := []string{
 			"foo.*bar",
@@ -115,11 +115,11 @@ func BMIncresingTermsCountGeneral(b *testing.B, step int) {
 		terms := getTerms(i)
 		regexes, andExps, inordExps, rgxExps := createExpressionsGeneral(terms)
 
-		BMDslSearch(fmt.Sprintf("SingleTermDsl_%d", i), andExps, &finder.CloudflareEngine{}, text, b)
+		BMDslSearch(fmt.Sprintf("SingleTermDsl_%d", i), andExps, &finder.CloudflareForkEngine{}, text, b)
 
-		BMDslSearch(fmt.Sprintf("SingleRegexDSL_%d", i), rgxExps, &finder.CloudflareEngine{}, text, b)
+		BMDslSearch(fmt.Sprintf("SingleRegexDSL_%d", i), rgxExps, &finder.CloudflareForkEngine{}, text, b)
 
-		BMDslSearch(fmt.Sprintf("SingleTermDslInord_%d", i), inordExps, &finder.CloudflareEngine{}, text, b)
+		BMDslSearch(fmt.Sprintf("SingleTermDslInord_%d", i), inordExps, &finder.CloudflareForkEngine{}, text, b)
 
 		BMUseCasesRegexOnly(fmt.Sprintf("OnlyRegex_%d", i), text, regexes, b)
 	}
@@ -131,9 +131,9 @@ func BMIncresingTermsCountInord(b *testing.B, step int) {
 		terms := getTerms(i)
 		regexes, inordExps, rgxExps := createExpressionsWithOrder(terms)
 
-		BMDslSearch(fmt.Sprintf("OrderDSLWithRegex_%d", i), rgxExps, &finder.PetarDambovalievEngine{}, text, b)
+		BMDslSearch(fmt.Sprintf("OrderDSLWithRegex_%d", i), rgxExps, &finder.CloudflareForkEngine{}, text, b)
 
-		BMDslSearch(fmt.Sprintf("OrderDSLInord_%d", i), inordExps, &finder.PetarDambovalievEngine{}, text, b)
+		BMDslSearch(fmt.Sprintf("OrderDSLInord_%d", i), inordExps, &finder.CloudflareForkEngine{}, text, b)
 
 		BMUseCasesRegexOnly(fmt.Sprintf("OrderWithRegex_%d", i), text, regexes, b)
 	}
@@ -150,9 +150,7 @@ func BMUseCasesRegexOnly(name string, text string, regexestr []string, b *testin
 		for i := 0; i < b.N; i++ {
 			for _, r := range regex {
 				positions := r.FindAllStringIndex(text, -1)
-				for _, pos := range positions {
-					positionsArr = append(positionsArr, pos)
-				}
+				positionsArr = append(positionsArr, positions...)
 			}
 		}
 	})

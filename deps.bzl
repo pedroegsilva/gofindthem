@@ -101,10 +101,10 @@ def go_dependencies():
     )
 
     go_repository(
-        name = "com_github_petar_dambovaliev_aho_corasick",
-        importpath = "github.com/petar-dambovaliev/aho-corasick",
-        sum = "h1:WuXe30Ig5zUIYEHyzsLMBFPP5l0yRQ5IiZScODHwy8g=",
-        version = "v0.0.0-20210512121028-af76a9ff7276",
+        name = "com_github_pedroegsilva_ahocorasick",
+        importpath = "github.com/pedroegsilva/ahocorasick",
+        sum = "h1:N5egH9vhDB1eGp00uZmi8OFzb3cFrE9dG5MfrjRKcGc=",
+        version = "v0.1.0",
     )
     go_repository(
         name = "com_github_phpdave11_gofpdf",
@@ -187,7 +187,6 @@ def go_dependencies():
         sum = "h1:K72hopUosKG3ntOPNG4OzzbuhxGuVf06fa2la1/H/Ho=",
         version = "v0.0.0-20210308172011-57750fc8a0a6",
     )
-
     go_repository(
         name = "org_golang_x_crypto",
         importpath = "golang.org/x/crypto",
@@ -212,7 +211,6 @@ def go_dependencies():
         sum = "h1:4+4C/Iv2U4fMZBiMCc98MG1In4gJY5YRhtpDNeDeHWs=",
         version = "v0.0.0-20190719004257-d2bd2a29d028",
     )
-
     go_repository(
         name = "org_golang_x_mod",
         importpath = "golang.org/x/mod",
@@ -236,12 +234,6 @@ def go_dependencies():
         importpath = "golang.org/x/sys",
         sum = "h1:7+SpRyhoo46QjKkYInQXpcfxx3TYFEYkn131lwGE9/0=",
         version = "v0.0.0-20210304124612-50617c2ba197",
-    )
-    go_repository(
-        name = "org_golang_x_term",
-        importpath = "golang.org/x/term",
-        sum = "h1:v+OssWQX+hTHEmOBgwxdZxK4zHq3yOs8F9J7mk0PY8E=",
-        version = "v0.0.0-20201126162022-7de9c90e9dd1",
     )
     go_repository(
         name = "org_golang_x_text",

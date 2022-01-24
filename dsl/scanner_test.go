@@ -22,31 +22,31 @@ func TestScanner(t *testing.T) {
 		message  string
 	}{
 		{
-			expStr: `and   or   not  "keyword 1"  (   ) inord r`,
+			expStr: `and   or   not  "keyword 1"  (   ) inord r"regex1"`,
 			expected: []expectedAtScan{
-				expectedAtScan{Tok: AND, Lit: "and", Err: nil},
-				expectedAtScan{Tok: WS, Lit: "   ", Err: nil},
-				expectedAtScan{Tok: OR, Lit: "or", Err: nil},
-				expectedAtScan{Tok: WS, Lit: "   ", Err: nil},
-				expectedAtScan{Tok: NOT, Lit: "not", Err: nil},
-				expectedAtScan{Tok: WS, Lit: "  ", Err: nil},
-				expectedAtScan{Tok: KEYWORD, Lit: "keyword 1", Err: nil},
-				expectedAtScan{Tok: WS, Lit: "  ", Err: nil},
-				expectedAtScan{Tok: OPPAR, Lit: "(", Err: nil},
-				expectedAtScan{Tok: WS, Lit: "   ", Err: nil},
-				expectedAtScan{Tok: CLPAR, Lit: ")", Err: nil},
-				expectedAtScan{Tok: WS, Lit: " ", Err: nil},
-				expectedAtScan{Tok: INORD, Lit: "inord", Err: nil},
-				expectedAtScan{Tok: WS, Lit: " ", Err: nil},
-				expectedAtScan{Tok: REGEX, Lit: "r", Err: nil},
-				expectedAtScan{Tok: EOF, Lit: "", Err: nil},
+				{Tok: AND, Lit: "and", Err: nil},
+				{Tok: WS, Lit: "   ", Err: nil},
+				{Tok: OR, Lit: "or", Err: nil},
+				{Tok: WS, Lit: "   ", Err: nil},
+				{Tok: NOT, Lit: "not", Err: nil},
+				{Tok: WS, Lit: "  ", Err: nil},
+				{Tok: KEYWORD, Lit: "keyword 1", Err: nil},
+				{Tok: WS, Lit: "  ", Err: nil},
+				{Tok: OPPAR, Lit: "(", Err: nil},
+				{Tok: WS, Lit: "   ", Err: nil},
+				{Tok: CLPAR, Lit: ")", Err: nil},
+				{Tok: WS, Lit: " ", Err: nil},
+				{Tok: INORD, Lit: "inord", Err: nil},
+				{Tok: WS, Lit: " ", Err: nil},
+				{Tok: REGEX, Lit: "regex1", Err: nil},
+				{Tok: EOF, Lit: "", Err: nil},
 			},
 			message: "all tokens",
 		},
 		{
 			expStr: `invalidOne`,
 			expected: []expectedAtScan{
-				expectedAtScan{
+				{
 					Tok: ILLEGAL,
 					Lit: "",
 					Err: fmt.Errorf("failed to scan operator: unexpected operator 'invalidOne' found"),
@@ -57,7 +57,7 @@ func TestScanner(t *testing.T) {
 		{
 			expStr: `"invalidKeyword `,
 			expected: []expectedAtScan{
-				expectedAtScan{
+				{
 					Tok: ILLEGAL,
 					Lit: "",
 					Err: fmt.Errorf("fail to scan keyword: expected \" but found EOF"),
@@ -68,24 +68,24 @@ func TestScanner(t *testing.T) {
 		{
 			expStr: `"keyword \n \r \t \\ \" "`,
 			expected: []expectedAtScan{
-				expectedAtScan{
+				{
 					Tok: KEYWORD,
 					Lit: "keyword \n \r \t \\ \" ",
 					Err: nil,
 				},
-				expectedAtScan{Tok: EOF, Lit: "", Err: nil},
+				{Tok: EOF, Lit: "", Err: nil},
 			},
 			message: "valid scaped keyword",
 		},
 		{
 			expStr: `"keyword \s"`,
 			expected: []expectedAtScan{
-				expectedAtScan{
+				{
 					Tok: ILLEGAL,
 					Lit: "",
 					Err: fmt.Errorf("fail to scan keyword: invalid escaped char s"),
 				},
-				expectedAtScan{Tok: EOF, Lit: "", Err: nil},
+				{Tok: EOF, Lit: "", Err: nil},
 			},
 			message: "invalid scaped keyword",
 		},
@@ -93,10 +93,10 @@ func TestScanner(t *testing.T) {
 		{
 			expStr: `123`,
 			expected: []expectedAtScan{
-				expectedAtScan{
+				{
 					Tok: ILLEGAL,
 					Lit: "",
-					Err: fmt.Errorf("Illegal char was found 1"),
+					Err: fmt.Errorf("illegal char was found 1"),
 				},
 			},
 			message: "invalid scaped keyword",

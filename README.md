@@ -35,7 +35,7 @@ https://github.com/anknown/ahocorasick and
 https://github.com/petar-dambovaliev/aho-corasick and a regexp implementation for the `RegexEngine`. 
 But any other library can be used as long as it "implements" the `SubstringEngine` or `RegexEngine` interface.
 ```go
-    subEng := &finder.PetarDambovalievEngine{}
+    subEng := &finder.CloudflareForkEngine{}
     rgxEng := &finder.RegexpEngine{}
     caseSensitive := true
     findthem := finder.NewFinder(subEng, rgxEng, caseSensitive)
@@ -73,7 +73,7 @@ And finally you can check which expressions match on each text.
 		}
 		fmt.Printf("----------Text %d case sensitive-----------\n", i)
 		for _, expRes := range resp {
-			fmt.Printf("exp: [%s]%s | %v\n", expRes.Tag, expRes.ExpresionStr, expRes.Evaluation)
+			fmt.Printf("exp %d: [%s]%s\n", expRes.ExpresionIndex, expRes.Tag, expRes.ExpresionStr)
 		}
 	}
 ```

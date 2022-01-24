@@ -17,15 +17,15 @@ type Match struct {
 // the SolverOrder to later solve the expression.
 type exprWrapper struct {
 	exprString string
-	solverOrd  dsl.SolverOrder
+	solverOrd  *dsl.Expression ///*dsl.SolverOrder
 	tag        string
 }
 
 // ExpressionResult
 type ExpressionResult struct {
-	ExpresionStr string
-	Tag          string
-	Evaluation   bool
+	ExpresionIndex int
+	ExpresionStr   string
+	Tag            string
 }
 
 // Finder stores the needed information to find the terms and solve the expressions
@@ -62,6 +62,33 @@ func (finder *Finder) AddExpression(expression string) error {
 	return finder.AddExpressionWithTag(expression, "")
 }
 
+// AddExpressions adds the expressions to the finder. It also collect
+// and store the terms from all expressions that are going to be used by
+// the substring engine If the expression is malformed returns an error.
+func (finder *Finder) AddExpressions(expressions []string) error {
+	for _, expression := range expressions {
+		err := finder.AddExpressionWithTag(expression, "")
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AddExpressionsWithTag adds the expressions to the finder with the same tag.
+// the tag will be returned on the process text. It also collect
+// and store the terms that are going to be used by the substring engine
+// If the expression is malformed returns an error.
+func (finder *Finder) AddExpressionsWithTag(expressions []string, tag string) error {
+	for _, expression := range expressions {
+		err := finder.AddExpressionWithTag(expression, tag)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // AddExpressionWithTag adds the expression to the finder with a tag.
 // the tag will be returned on the process text. It also collect
 // and store the terms that are going to be used by the substring engine
@@ -73,7 +100,7 @@ func (finder *Finder) AddExpressionWithTag(expression string, tag string) error 
 		return err
 	}
 
-	finder.expressions = append(finder.expressions, exprWrapper{expression, exp.CreateSolverOrder(), tag})
+	finder.expressions = append(finder.expressions, exprWrapper{expression, exp /*exp.CreateSolverOrder()*/, tag})
 	for key := range p.GetKeywords() {
 		finder.keywords[key] = struct{}{}
 		finder.updatedSubMachine = false
@@ -89,13 +116,13 @@ func (finder *Finder) AddExpressionWithTag(expression string, tag string) error 
 
 // ProcessText uses all the unique terms to create the substring engine.
 // Searches for matching terms and solves the expressions.
-// and returns a map with the expression string as key and its evaluation as value
+// and returns an array of ExpressionResult for the all expressions that were evaluetad as true.
 func (finder *Finder) ProcessText(text string) (expRes []ExpressionResult, err error) {
 	if !finder.caseSensitive {
 		text = strings.ToLower(text)
 	}
 
-	solverMap := make(map[string]dsl.PatternResult)
+	sortedMatchesByKeyword := make(map[string][]int)
 
 	if len(finder.keywords) > 0 {
 		if !finder.updatedSubMachine {
@@ -110,7 +137,7 @@ func (finder *Finder) ProcessText(text string) (expRes []ExpressionResult, err e
 		if err != nil {
 			return nil, err
 		}
-		finder.addMatchesToSolverMap(keyMaches, solverMap)
+		finder.addMatchesToSolverMap(keyMaches, sortedMatchesByKeyword)
 	}
 
 	if len(finder.regexes) > 0 {
@@ -126,13 +153,13 @@ func (finder *Finder) ProcessText(text string) (expRes []ExpressionResult, err e
 		if err != nil {
 			return nil, err
 		}
-		finder.addMatchesToSolverMap(rgxMaches, solverMap)
+		finder.addMatchesToSolverMap(rgxMaches, sortedMatchesByKeyword)
 	}
 
-	return finder.solveExpressions(solverMap)
+	return finder.solveExpressions(sortedMatchesByKeyword)
 }
 
-func (finder *Finder) addMatchesToSolverMap(matches []*Match, solverMap map[string]dsl.PatternResult) {
+func (finder *Finder) addMatchesToSolverMap(matches []*Match, sortedMatchesByKeyword map[string][]int) {
 	for _, match := range matches {
 		term := match.Term
 		// if the engine returns the substring that was actually matched
@@ -141,31 +168,28 @@ func (finder *Finder) addMatchesToSolverMap(matches []*Match, solverMap map[stri
 			term = strings.ToLower(term)
 		}
 
-		if pattRes, ok := solverMap[term]; ok {
-			pattRes.Val = true
-			pattRes.SortedMatchPos = append(pattRes.SortedMatchPos, match.Position)
-			solverMap[term] = pattRes
+		if sortedMatches, ok := sortedMatchesByKeyword[term]; ok {
+			sortedMatchesByKeyword[term] = append(sortedMatches, match.Position)
 		} else {
-			solverMap[term] = dsl.PatternResult{
-				Val:            true,
-				SortedMatchPos: []int{match.Position},
-			}
+			sortedMatchesByKeyword[term] = []int{match.Position}
 		}
 	}
 }
 
-// solveExpressions solves all expressions using the values of the solverMap
-func (finder *Finder) solveExpressions(solverMap map[string]dsl.PatternResult) (expRes []ExpressionResult, err error) {
-	expRes = make([]ExpressionResult, len(finder.expressions))
+// solveExpressions returns all expressions that were true using the values of the solverMap
+func (finder *Finder) solveExpressions(sortedMatchesByKeyword map[string][]int) (expRes []ExpressionResult, err error) {
+	expRes = make([]ExpressionResult, 0)
 	for i, exp := range finder.expressions {
-		res, err := exp.solverOrd.Solve(solverMap, false)
+		res, err := exp.solverOrd.Solve(sortedMatchesByKeyword)
 		if err != nil {
 			return nil, err
 		}
-		expRes[i] = ExpressionResult{
-			Evaluation:   res,
-			Tag:          exp.tag,
-			ExpresionStr: exp.exprString,
+		if res {
+			expRes = append(expRes, ExpressionResult{
+				Tag:            exp.tag,
+				ExpresionStr:   exp.exprString,
+				ExpresionIndex: i,
+			})
 		}
 	}
 	return
