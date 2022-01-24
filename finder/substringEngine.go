@@ -94,7 +94,7 @@ type CloudflareForkEngine struct {
 }
 
 // BuildEngine implements BuildEngine using the
-// github.com/cloudflare/ahocorasick package
+// github.com/pedroegsilva/ahocorasick package
 func (cffm *CloudflareForkEngine) BuildEngine(keywords map[string]struct{}, caseSensitive bool) (err error) {
 	dict := []string{}
 	for key := range keywords {
@@ -106,7 +106,7 @@ func (cffm *CloudflareForkEngine) BuildEngine(keywords map[string]struct{}, case
 }
 
 // FindSubstrings implements FindSubstrings using the
-// github.com/cloudflare/ahocorasick package
+// github.com/pedroegsilva/ahocorasick package
 func (cffm *CloudflareForkEngine) FindSubstrings(text string) (matches []*Match, err error) {
 	ms := cffm.Matcher.MatchAll([]byte(text))
 	for _, hit := range ms {
