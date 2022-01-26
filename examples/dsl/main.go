@@ -36,13 +36,6 @@ func main() {
 	}
 	fmt.Println("recursive eval ", responseRecursive)
 
-	solverArr := expression.CreateSolverOrder()
-	responseIter, err := solverArr.Solve(matches)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("iterative eval ", responseIter)
-
 	// should return an error
 	_, err = expression.Solve(matches)
 	if err != nil {

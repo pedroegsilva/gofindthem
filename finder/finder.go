@@ -17,7 +17,7 @@ type Match struct {
 // the SolverOrder to later solve the expression.
 type exprWrapper struct {
 	exprString string
-	solverOrd  *dsl.Expression ///*dsl.SolverOrder
+	expression *dsl.Expression
 	tag        string
 }
 
@@ -100,7 +100,7 @@ func (finder *Finder) AddExpressionWithTag(expression string, tag string) error 
 		return err
 	}
 
-	finder.expressions = append(finder.expressions, exprWrapper{expression, exp /*exp.CreateSolverOrder()*/, tag})
+	finder.expressions = append(finder.expressions, exprWrapper{expression, exp, tag})
 	for key := range p.GetKeywords() {
 		finder.keywords[key] = struct{}{}
 		finder.updatedSubMachine = false
@@ -180,7 +180,7 @@ func (finder *Finder) addMatchesToSolverMap(matches []*Match, sortedMatchesByKey
 func (finder *Finder) solveExpressions(sortedMatchesByKeyword map[string][]int) (expRes []ExpressionResult, err error) {
 	expRes = make([]ExpressionResult, 0)
 	for i, exp := range finder.expressions {
-		res, err := exp.solverOrd.Solve(sortedMatchesByKeyword)
+		res, err := exp.expression.Solve(sortedMatchesByKeyword)
 		if err != nil {
 			return nil, err
 		}

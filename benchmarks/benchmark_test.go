@@ -97,14 +97,6 @@ func BenchmarkSolverPartialMap100(b *testing.B) {
 	BMSolver(exp100, sortedMatchesByKeywordPart100, b)
 }
 
-func BenchmarkSolverIterCompleteMap100(b *testing.B) {
-	BMSolverIter(exp100, sortedMatchesByKeywordComp100, b)
-}
-
-func BenchmarkSolverIterPartialMap100(b *testing.B) {
-	BMSolverIter(exp100, sortedMatchesByKeywordPart100, b)
-}
-
 func BenchmarkAhocorasickCloudFlareBuild100(b *testing.B) {
 	BMCloudFlareBuild(exp100, b)
 }
@@ -153,14 +145,6 @@ func BenchmarkSolverCompleteMap10000(b *testing.B) {
 
 func BenchmarkSolverPartialMap10000(b *testing.B) {
 	BMSolver(exp10000, sortedMatchesByKeywordPart10000, b)
-}
-
-func BenchmarkSolverIterCompleteMap10000(b *testing.B) {
-	BMSolverIter(exp10000, sortedMatchesByKeywordComp10000, b)
-}
-
-func BenchmarkSolverIterPartialMap10000(b *testing.B) {
-	BMSolverIter(exp10000, sortedMatchesByKeywordPart10000, b)
 }
 
 func BenchmarkAhocorasickCloudFlareBuild10000(b *testing.B) {
@@ -328,15 +312,6 @@ func BMSolver(exp string, sortedMatchesByKeyword map[string][]int, b *testing.B)
 	e, _ := p.Parse()
 	for i := 0; i < b.N; i++ {
 		e.Solve(sortedMatchesByKeyword)
-	}
-}
-
-func BMSolverIter(exp string, sortedMatchesByKeyword map[string][]int, b *testing.B) {
-	p := dsl.NewParser(strings.NewReader(exp), true)
-	e, _ := p.Parse()
-	so := e.CreateSolverOrder()
-	for i := 0; i < b.N; i++ {
-		so.Solve(sortedMatchesByKeyword)
 	}
 }
 
