@@ -32,23 +32,13 @@ func TestAddExpression(t *testing.T) {
 				exprs: []exprWrapper{
 					{
 						`"a" and r"B"`,
-						&dsl.SolverOrder{
-							&dsl.Expression{
-								Type: dsl.AND_EXPR,
-								LExpr: &dsl.Expression{
-									Type:    dsl.UNIT_EXPR,
-									Literal: "a",
-								},
-								RExpr: &dsl.Expression{
-									Type:    dsl.UNIT_EXPR,
-									Literal: "b",
-								},
-							},
-							&dsl.Expression{
+						&dsl.Expression{
+							Type: dsl.AND_EXPR,
+							LExpr: &dsl.Expression{
 								Type:    dsl.UNIT_EXPR,
 								Literal: "a",
 							},
-							&dsl.Expression{
+							RExpr: &dsl.Expression{
 								Type:    dsl.UNIT_EXPR,
 								Literal: "b",
 							},
@@ -57,15 +47,9 @@ func TestAddExpression(t *testing.T) {
 					},
 					{
 						`not "C"`,
-						&dsl.SolverOrder{
-							&dsl.Expression{
-								Type: dsl.NOT_EXPR,
-								RExpr: &dsl.Expression{
-									Type:    dsl.UNIT_EXPR,
-									Literal: "c",
-								},
-							},
-							&dsl.Expression{
+						&dsl.Expression{
+							Type: dsl.NOT_EXPR,
+							RExpr: &dsl.Expression{
 								Type:    dsl.UNIT_EXPR,
 								Literal: "c",
 							},
@@ -91,11 +75,9 @@ func TestAddExpression(t *testing.T) {
 				exprs: []exprWrapper{
 					{
 						`"A"`,
-						&dsl.SolverOrder{
-							&dsl.Expression{
-								Type:    dsl.UNIT_EXPR,
-								Literal: "A",
-							},
+						&dsl.Expression{
+							Type:    dsl.UNIT_EXPR,
+							Literal: "A",
 						},
 						"",
 					},
@@ -115,11 +97,9 @@ func TestAddExpression(t *testing.T) {
 				exprs: []exprWrapper{
 					{
 						`"A"`,
-						&dsl.SolverOrder{
-							&dsl.Expression{
-								Type:    dsl.UNIT_EXPR,
-								Literal: "A",
-							},
+						&dsl.Expression{
+							Type:    dsl.UNIT_EXPR,
+							Literal: "A",
 						},
 						"",
 					},
@@ -252,21 +232,18 @@ func TestProcessText(t *testing.T) {
 				expressions: []exprWrapper{
 					{
 						`"sharpest"`,
-						&dsl.SolverOrder{
-							&dsl.Expression{
-								Type:    dsl.UNIT_EXPR,
-								Literal: "sharpest",
-							},
+						&dsl.Expression{
+							Type:    dsl.UNIT_EXPR,
+							Literal: "sharpest",
 						},
 						"",
 					},
 					{
 						`r"words"`,
-						&dsl.SolverOrder{
-							&dsl.Expression{
-								Type:    dsl.UNIT_EXPR,
-								Literal: "words",
-							},
+
+						&dsl.Expression{
+							Type:    dsl.UNIT_EXPR,
+							Literal: "words",
 						},
 						"",
 					},
@@ -302,21 +279,17 @@ func TestProcessText(t *testing.T) {
 				expressions: []exprWrapper{
 					{
 						`"sharpest"`,
-						&dsl.SolverOrder{
-							&dsl.Expression{
-								Type:    dsl.UNIT_EXPR,
-								Literal: "sharpest",
-							},
+						&dsl.Expression{
+							Type:    dsl.UNIT_EXPR,
+							Literal: "sharpest",
 						},
 						"",
 					},
 					{
 						`r"words"`,
-						&dsl.SolverOrder{
-							&dsl.Expression{
-								Type:    dsl.UNIT_EXPR,
-								Literal: "words",
-							},
+						&dsl.Expression{
+							Type:    dsl.UNIT_EXPR,
+							Literal: "words",
 						},
 						"",
 					},
@@ -509,27 +482,19 @@ func TestSolveExpressions(t *testing.T) {
 		expressions: []exprWrapper{
 			{
 				`"sharpest" and "words"`,
-				&dsl.SolverOrder{
-					&dsl.Expression{
-						Type:  dsl.AND_EXPR,
-						LExpr: lexp1,
-						RExpr: rexp1,
-					},
-					lexp1,
-					rexp1,
+				&dsl.Expression{
+					Type:  dsl.AND_EXPR,
+					LExpr: lexp1,
+					RExpr: rexp1,
 				},
 				"",
 			},
 			{
 				`"no one" or "Can get in the way"`,
-				&dsl.SolverOrder{
-					&dsl.Expression{
-						Type:  dsl.OR_EXPR,
-						LExpr: lexp2,
-						RExpr: rexp2,
-					},
-					lexp2,
-					rexp2,
+				&dsl.Expression{
+					Type:  dsl.OR_EXPR,
+					LExpr: lexp2,
+					RExpr: rexp2,
 				},
 				"",
 			},
