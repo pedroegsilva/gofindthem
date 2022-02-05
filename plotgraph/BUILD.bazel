@@ -4,6 +4,7 @@ go_library(
     name = "plotgraph_lib",
     srcs = ["main.go"],
     data = [
+        ":files/all_benchmark.txt",
         ":files/benchmark1.txt",
         ":files/benchmark2.txt",
         ":files/benchmark3.txt",

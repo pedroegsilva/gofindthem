@@ -89,17 +89,20 @@ func BMIncresingTextSize(b *testing.B, step int) {
 		expressions1 := []string{
 			`"foo" and "bar"`,
 		}
-		BMDslSearch(fmt.Sprintf("TextDSL_%d", i), expressions1, &finder.CloudflareForkEngine{}, text, b)
+		BMDslSearch(fmt.Sprintf("TextDSL_CL_%d", i), expressions1, &finder.CloudflareEngine{}, text, b)
+		BMDslSearch(fmt.Sprintf("TextDSL_CLfork_%d", i), expressions1, &finder.CloudflareForkEngine{}, text, b)
+		BMDslSearch(fmt.Sprintf("TextDSL_anknown_%d", i), expressions1, &finder.AnknownEngine{}, text, b)
 
 		expressions2 := []string{
 			`r"foo.*bar" and r"bar.*foo"`,
 		}
-		BMDslSearch(fmt.Sprintf("TextDSLRegex_%d", i), expressions2, &finder.CloudflareForkEngine{}, text, b)
+		BMDslSearch(fmt.Sprintf("TextDSLRegex_%d", i), expressions2, &finder.EmptyEngine{}, text, b)
 
 		expressions3 := []string{
 			`INORD("foo" and "bar") and INORD("bar" and "foo")`,
 		}
-		BMDslSearch(fmt.Sprintf("TextDSLInord_%d", i), expressions3, &finder.CloudflareForkEngine{}, text, b)
+		BMDslSearch(fmt.Sprintf("TextDSLInord_CLfork_%d", i), expressions3, &finder.CloudflareForkEngine{}, text, b)
+		BMDslSearch(fmt.Sprintf("TextDSLInord_anknown_%d", i), expressions3, &finder.AnknownEngine{}, text, b)
 
 		regexes := []string{
 			"foo.*bar",
@@ -115,13 +118,16 @@ func BMIncresingTermsCountGeneral(b *testing.B, step int) {
 		terms := getTerms(i)
 		regexes, andExps, inordExps, rgxExps := createExpressionsGeneral(terms)
 
-		BMDslSearch(fmt.Sprintf("SingleTermDsl_%d", i), andExps, &finder.CloudflareForkEngine{}, text, b)
+		BMDslSearch(fmt.Sprintf("SingleTermDsl_CL_%d", i), andExps, &finder.CloudflareEngine{}, text, b)
+		BMDslSearch(fmt.Sprintf("SingleTermDsl_CLfork_%d", i), andExps, &finder.CloudflareForkEngine{}, text, b)
+		BMDslSearch(fmt.Sprintf("SingleTermDsl_anknown_%d", i), andExps, &finder.AnknownEngine{}, text, b)
 
-		BMDslSearch(fmt.Sprintf("SingleRegexDSL_%d", i), rgxExps, &finder.CloudflareForkEngine{}, text, b)
+		BMDslSearch(fmt.Sprintf("SingleTermDslInord_CLfork_%d", i), inordExps, &finder.CloudflareForkEngine{}, text, b)
+		BMDslSearch(fmt.Sprintf("SingleTermDslInord_anknown_%d", i), inordExps, &finder.AnknownEngine{}, text, b)
 
-		BMDslSearch(fmt.Sprintf("SingleTermDslInord_%d", i), inordExps, &finder.CloudflareForkEngine{}, text, b)
+		BMDslSearch(fmt.Sprintf("SingleRegexDSL_%d", i), rgxExps, &finder.EmptyEngine{}, text, b)
 
-		BMUseCasesRegexOnly(fmt.Sprintf("OnlyRegex_%d", i), text, regexes, b)
+		BMUseCasesRegexOnly(fmt.Sprintf("SingleOnlyRegex_%d", i), text, regexes, b)
 	}
 }
 
@@ -131,9 +137,10 @@ func BMIncresingTermsCountInord(b *testing.B, step int) {
 		terms := getTerms(i)
 		regexes, inordExps, rgxExps := createExpressionsWithOrder(terms)
 
-		BMDslSearch(fmt.Sprintf("OrderDSLWithRegex_%d", i), rgxExps, &finder.CloudflareForkEngine{}, text, b)
+		BMDslSearch(fmt.Sprintf("OrderDSLWithRegex_%d", i), rgxExps, &finder.EmptyEngine{}, text, b)
 
-		BMDslSearch(fmt.Sprintf("OrderDSLInord_%d", i), inordExps, &finder.CloudflareForkEngine{}, text, b)
+		BMDslSearch(fmt.Sprintf("OrderDSLInord_CLfork_%d", i), inordExps, &finder.CloudflareForkEngine{}, text, b)
+		BMDslSearch(fmt.Sprintf("OrderDSLInord_anknown_%d", i), inordExps, &finder.AnknownEngine{}, text, b)
 
 		BMUseCasesRegexOnly(fmt.Sprintf("OrderWithRegex_%d", i), text, regexes, b)
 	}
