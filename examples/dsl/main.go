@@ -30,15 +30,10 @@ func main() {
 		"dolor": {1, 7},
 	}
 
-	responseRecursive, err := expression.Solve(matches)
+	response, err := expression.Solve(matches)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("recursive eval ", responseRecursive)
+	fmt.Println("eval ", response)
 
-	// should return an error
-	_, err = expression.Solve(matches)
-	if err != nil {
-		log.Fatal(err)
-	}
 }
