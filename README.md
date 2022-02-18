@@ -32,7 +32,7 @@ and if the search will be case sensitive or not.
 There are 3 "implementations" of `SubstringEngine` that uses the libraries from 
 https://github.com/cloudflare/ahocorasick, 
 https://github.com/anknown/ahocorasick and 
-https://github.com/petar-dambovaliev/aho-corasick and a regexp implementation for the `RegexEngine`. 
+https://github.com/pedroegsilva/ahocorasick (fork from cloudflare with the addition for matching positions) and a regexp implementation for the `RegexEngine`. 
 But any other library can be used as long as it "implements" the `SubstringEngine` or `RegexEngine` interface.
 ```go
     subEng := &finder.CloudflareForkEngine{}
@@ -41,7 +41,7 @@ But any other library can be used as long as it "implements" the `SubstringEngin
     findthem := finder.NewFinder(subEng, rgxEng, caseSensitive)
 ```
 
-Then you need to add the expressions that need to be solved.
+Then you need to add the expressions that need to be solved and a tag for that expression.
 ```go
 	if err := findthem.AddExpressionWithTag(`r"Lorem" and "ipsum"`, "test"); err != nil {
 		log.Fatal(err)
@@ -64,7 +64,7 @@ Then you need to add the expressions that need to be solved.
 	}
 ```
 
-And finally you can check which expressions match on each text. 
+And finally you can check which expressions were match on each text. 
 ```go
 	for i, text := range texts {
 		resp, err := findthem.ProcessText(text)
@@ -143,58 +143,25 @@ You can also get a pretty format to see the created Abstract Syntax Tree (AST).
     fmt.Printf("pretty format:\n%s\n", expression.PrettyFormat())
 ```
 
-There are two ways to solve the expression.
+To solve the expression we need a map of the terms that were matched and the position of each match. The positions are needed to solve the INORD operator and must be sorted to work properly, if there is no INORD operator in the expression, an empty array or a nil value will suffice.  
 
-Recursively:
+solving example:
 ```go 
-    matches := map[string]dsl.PatternResult{
-        "foo": dsl.PatternResult{
-            Val:            true,
-            SortedMatchPos: []int{0, 2, 5},
-        },
-        "bar": dsl.PatternResult{
-            Val:            true,
-            SortedMatchPos: []int{3},
-        },
-        "dolor": dsl.PatternResult{
-            Val:            true,
-            SortedMatchPos: []int{1, 7},
-        },
-    }
+	matches := map[string][]int{
+		"foo":   {0, 2, 5},
+		"bar":   {3},
+		"dolor": {1, 7},
+	}
 
-    responseRecursive, err := expression.Solve(matches, false)
-    if err != nil {
-        log.Fatal(err)
-    }
-    fmt.Println("recursive eval ", responseRecursive)
+	response, err := expression.Solve(matches)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("eval ", response)
 ```
-Iteratively:
-```go
-    solverArr := expression.CreateSolverOrder()
-    responseIter, err := solverArr.Solve(matches, false)
-    if err != nil {
-        log.Fatal(err)
-    }
-    fmt.Println("iterative eval ", responseIter)
-```
-The Iterative solution needs to create an array with the order in which the expressions need to be solved.
-It is faster than the recursive if you need to solve the expression more than 8 times (the gain in performance is around 13% from the benchmark results)
 
-The solvers also need to know if the map of matches is complete or not. If it is complete it will have the term as a key even if it was a no match.
-The incomplete option will assume that if a key is not present the term was not found.
-If an incomplete map is provided and the key is not found an error will be returned.
-
-```go
-    // should return an error
-    _, err = expression.Solve(matches, true)
-    if err != nil {
-
-        log.Fatal(err)
-    }
-}
-
-```
 The complete example can be found at `/examples/dsl/main.go`
+
 ## Run Locally
 This project uses Bazel to build and test the code. 
 You can run this project using go as well.
