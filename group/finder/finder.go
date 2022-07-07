@@ -147,9 +147,11 @@ func (rf *GroupFinder) EvaluateRules(
 }
 
 // ProcessJson extract all tags and evaluate all rules for the given data of type json.
-// includePaths can be used to specify what fields will be used on the tagging, and
-// excludePaths can be used to specify what fields will be skipped on the tagging
-// use an empty array or nil to tag all fields.
+// includePaths can be used to specify what fields will be used on the tagging.
+// if empty array or nil is passed to 'includePaths' it will consider all fields as taggable.
+// excludePaths can be used to specify what fields will be skipped on the tagging, if
+// there is a conflict on a specific field the excludePath has precedence over the include paths.
+// Empty array or nil can be used to not exclude any fields
 func (rf *GroupFinder) ProcessJson(
 	rawJson string,
 	includePaths []string,
@@ -164,9 +166,11 @@ func (rf *GroupFinder) ProcessJson(
 }
 
 // ProcessObject extract all tags and evaluate all rules for the given data of type interface.
-// includePaths can be used to specify what fields will be used on the tagging, and
-// excludePaths can be used to specify what fields will be skipped on the tagging
-// use an empty array or nil to tag all fields.
+// includePaths can be used to specify what fields will be used on the tagging.
+// if empty array or nil is passed to 'includePaths' it will consider all fields as taggable.
+// excludePaths can be used to specify what fields will be skipped on the tagging, if
+// there is a conflict on a specific field the excludePath has precedence over the include paths.
+// Empty array or nil can be used to not exclude any fields
 func (rf *GroupFinder) ProcessObject(
 	obj interface{},
 	includePaths []string,
