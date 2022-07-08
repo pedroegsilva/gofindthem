@@ -1,0 +1,29 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "finder",
+    srcs = [
+        "finder.go",
+        "internal.go",
+    ],
+    importpath = "github.com/pedroegsilva/gofindthem/group/finder",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//finder",
+        "//group/dsl",
+    ],
+)
+
+go_test(
+    name = "finder_test",
+    srcs = [
+        "finder_test.go",
+        "internal_test.go",
+    ],
+    embed = [":finder"],
+    deps = [
+        "//finder",
+        "//group/dsl",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

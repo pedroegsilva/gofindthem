@@ -55,6 +55,25 @@ func NewFinder(subEng SubstringEngine, rgxEng RegexEngine, caseSensitive bool) (
 	}
 }
 
+// NewFinderWithExpressions retruns a new instace of Finder with the
+// expressions and tags given at expressionsByTag.
+func NewFinderWithExpressions(
+	subEng SubstringEngine,
+	rgxEng RegexEngine,
+	caseSensitive bool,
+	expressionsByTag map[string][]string,
+) (finder *Finder, err error) {
+	finder = NewFinder(subEng, rgxEng, caseSensitive)
+	for tag, expressions := range expressionsByTag {
+		err = finder.AddExpressionsWithTag(expressions, tag)
+		if err != nil {
+			return
+		}
+	}
+
+	return
+}
+
 // AddExpression adds the expression to the finder. It also collect
 // and store the terms that are going to be used by the substring engine
 // If the expression is malformed returns an error.
