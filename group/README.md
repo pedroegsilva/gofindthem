@@ -88,10 +88,10 @@ A valid expression can be:
 Each operator functions as the following:
 
 - **AND** - Uses the expression before and after it to solve them as a logical `AND` operator. 
-    > (valid expression) AND (valid expression) eg: `"term 1" AND "term 2"` 
+    > (valid expression) AND (valid expression) eg: `"tag1" AND "tag2"` 
 
 - **OR** - Uses the expression before and after it to solve them as a logical `OR` operator.
-    > \<valid expression\> OR \<valid expression\> eg: `"term 1" OR "term 2"` 
+    > \<valid expression\> OR \<valid expression\> eg: `"tag1" OR "tag2"` 
 
 - **NOT** - Uses the expression after it to solve them as a logical `NOT` operator.
-    > NOT \<valid expression\> eg: `NOT "term 1"`
+    > NOT \<valid expression\> eg: `NOT "tag1"`

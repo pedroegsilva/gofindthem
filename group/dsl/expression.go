@@ -54,8 +54,8 @@ func (exp *Expression) GetTypeName() string {
 	return exp.Type.GetName()
 }
 
-// Solve solves the expresion using the ginven values of fieldPathByTag.
-// fieldPathByTag will hold the values of all tags that were found with a
+// Solve solves the expression using the given values of matchedExpByFieldByTag.
+// matchedExpByFieldByTag will hold the values of all tags that were found with a
 // list of field paths that the tag was found
 func (exp *Expression) Solve(
 	matchedExpByFieldByTag map[string]map[string]map[string]struct{},
@@ -73,7 +73,7 @@ func (exp *Expression) solve(matchedExpByFieldByTag map[string]map[string]map[st
 				return true, nil
 			}
 
-			for fieldPath, _ := range fieldPaths {
+			for fieldPath := range fieldPaths {
 				if strings.HasPrefix(fieldPath, exp.Tag.FieldPath) {
 					return true, nil
 				}
@@ -124,7 +124,7 @@ func (exp *Expression) solve(matchedExpByFieldByTag map[string]map[string]map[st
 	}
 }
 
-// PrettyFormat returns the expression formated on a tabbed structure
+// PrettyFormat returns the expression formatted on a tabbed structure
 // Eg: for the expression ("a" and "b") or "c"
 //    OR
 //        AND
