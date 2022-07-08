@@ -22,7 +22,7 @@ from which is heavily influenced by the [InfluxQL parser](https://github.com/inf
 
 ## Usage/Examples
 
-There are 2 libraries on this repository, the DSL and the Finder.
+There are 3 libraries/packages on this repository, the DSL, the Finder and the GroupFinder.
 
 ### Finder
 The finder is used to manage multiple expressions. It will use the DSL to extract the terms and regex from each expression and use them to process the text with the appropriate engine.
@@ -79,6 +79,15 @@ And finally you can check which expressions were match on each text.
 ```
 
 The full example can be found at `/examples/finder/main.go`
+
+### GroupFinder
+The Group finder is a package that adds another DSL to improve the maintainability 
+of the searched patterns and enables searches on specific fields of structured documents.
+It allows the configuration to be split into 2 categories(rules and tags) so that the tags
+can be used by multiple rules. The Rules also enables to check if a given tag was found on 
+a specific field for a structured document.
+You can find more about the usage of the Group Finder at its [README](https://github.com/pedroegsilva/gofindthem/tree/main/group)
+
 
 ### DSL
 #### Definition
